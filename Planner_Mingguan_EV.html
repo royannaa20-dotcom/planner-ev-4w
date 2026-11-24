@@ -55,7 +55,7 @@ body{
   color:var(--ink);
   font:14px/1.45 "Inter",system-ui,sans-serif;
   padding:14px;
-  max-width:1460px;
+  max-width:none;
   margin:auto;
 }
 button,input,select,textarea{font:inherit;color:inherit}
@@ -63,18 +63,68 @@ select{background-color:var(--cd);color:var(--ink)}
 select option{background-color:#f5f4f0;color:#161614}
 button{cursor:pointer}
 
+/* Login Gate */
+#auth-gate{
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  z-index:50;
+  display:none;
+  place-items:center;
+  padding:16px;
+}
+.auth-card{
+  width:min(380px,100%);
+  background:var(--cd);
+  border:1px solid var(--ln);
+  border-radius:24px;
+  padding:26px 24px;
+  box-shadow:0 12px 32px rgba(0,0,0,.08);
+}
+.auth-card label{
+  display:block;
+  margin-top:12px;
+  font-size:12px;
+  color:var(--mut);
+}
+.auth-card input{
+  width:100%;
+  margin-top:4px;
+  border:1px solid var(--ln);
+  background:var(--bg);
+  border-radius:12px;
+  padding:10px 13px;
+}
+.auth-card input:focus{
+  outline:none;
+  border-color:var(--ink);
+}
+.auth-err{
+  margin-top:10px;
+  padding:8px 12px;
+  border-radius:10px;
+  background:rgba(179,38,30,.12);
+  color:var(--bad);
+  font-size:12.5px;
+  display:none;
+}
+
 /* Navigation Pill Bar */
 .nav{
   display:flex;
   gap:6px;
   align-items:center;
   background:var(--cd);
-  border-radius:99px;
+  border-radius:24px;
   padding:6px;
   margin-bottom:22px;
-  overflow-x:auto;
+  flex-wrap:wrap;
 }
-.nav-logo{height:18px;width:auto;margin:0 10px 0 10px;flex:none;display:block;cursor:pointer}
+.nav-logo{height:20px;width:auto;margin:6px 12px;flex:none;display:block;cursor:pointer}
+@media(max-width:820px){
+  .nav button{padding:7px 12px;font-size:13px}
+  .nav .sp{display:none}
+}
 .nav .sp{flex:1}
 .nav button,.pill{
   border:0;
@@ -501,7 +551,7 @@ small,.mut{color:var(--mut)}
 .row:first-of-type{border-top:0}
 
 /* Modal & Toast */
-#ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;z-index:20;padding:12px}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;z-index:60;padding:12px}
 #md{width:min(560px,100%);background:var(--cd);border-radius:20px;padding:20px;max-height:92vh;overflow:auto}
 #md label{display:block;margin-top:11px;color:var(--mut);font-size:12px}
 #md input,#md select,#md textarea{
@@ -533,15 +583,6 @@ small,.mut{color:var(--mut)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:560px){.two{grid-template-columns:1fr}}
 
-.wk-box{
-  background:var(--bg);
-  border:1px solid var(--ln);
-  border-radius:14px;
-  padding:10px 12px;
-  margin-top:4px;
-}
-.wk-box small{display:block;margin-bottom:4px;font-weight:600;color:var(--ink)}
-
 #tip{
   position:fixed;
   z-index:30;
@@ -567,7 +608,7 @@ small,.mut{color:var(--mut)}
   display:none;
   gap:14px;
   align-items:center;
-  z-index:25;
+  z-index:70;
   max-width:92vw;
 }
 #toast button{background:var(--inv);color:var(--ink);border:0;border-radius:99px;padding:6px 14px}
@@ -582,7 +623,7 @@ small,.mut{color:var(--mut)}
     padding:0!important;
     max-width:none!important;
   }
-  .nav,#app,#ov,#toast,#tip{display:none!important}
+  .nav,#app,#ov,#toast,#tip,#auth-gate{display:none!important}
   #print-sheet{
     display:block!important;
     background:#fff!important;
@@ -624,13 +665,31 @@ small,.mut{color:var(--mut)}
 .cal-d.rb.wr{border-radius:0 8px 8px 0}
 .cal-d.re span{font-weight:700}
 .cal-prev{font-size:12px;color:var(--ok);margin-top:8px;font-weight:500}
+.cal-sum{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin-top:4px;background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:11px 14px;color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-align:left}
+.cal-sum i{font-style:normal;font-weight:500;font-size:12px;color:var(--mut);flex:none}
+.cal-sum.on{border-color:#4cc2ff;box-shadow:0 0 0 1px #4cc2ff}
+.cal-dur{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--mut)}
+.cal-dur span{flex:1}
+.cal-dur b{min-width:72px;text-align:center;color:var(--ink);font-size:13px;font-weight:600}
+.cal-dur button{border:1px solid var(--ln);background:none;border-radius:8px;width:30px;height:28px;color:var(--ink);cursor:pointer;font:inherit;font-size:15px;line-height:1}
+.cal-dur button:hover:not(:disabled){border-color:var(--ink)}
+.cal-dur button:disabled{opacity:.35;cursor:default}
+.mpick.add{border-style:dashed;color:var(--mut);padding:5px 12px}
+.tl-wrap.tight .tl-wcell span{display:none}
+.tl-wrap.tight .tl-wcell b{font-size:9.5px}
+.tl-wrap.tight .bar-t small{display:none}
 </style>
 <style id="print-orient"></style>
 </head>
 <body>
 
+<!-- LOGIN GATE OVERLAY -->
+<div id="auth-gate">
+  <div class="auth-card" id="auth-card-inner"></div>
+</div>
+
 <div class="nav">
-  <img src="data:image/png;base64,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" alt="POLYTRON" class="nav-logo" onclick="page='planner';render()" title="POLYTRON — Planner EV">
+  <img src="data:image/png;base64,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" alt="POLYTRON" class="nav-logo" onclick="page='planner';render()" title="POLYTRON — Planner EV">
   <button data-p="planner" class="on">Bulan &amp; Minggu</button>
   <button data-p="mingguan">Detail Minggu</button>
   <button data-p="bulanan">Detail Bulan</button>
@@ -641,6 +700,9 @@ small,.mut{color:var(--mut)}
   <button id="fb-btn" class="fb-pill" onclick="openFirebaseModal()" title="Atur koneksi & sinkronisasi Firebase Realtime Database">
     <span class="fb-dot" id="fb-dot"></span>
     <span id="fb-lbl">Firebase: Lokal</span>
+  </button>
+  <button id="user-pill" class="fb-pill" style="display:none" onclick="openAccountModal()" title="Info akun login & kelola ID/Password">
+    <span id="user-lbl"></span>
   </button>
   <button class="on" onclick="openReportModal()" title="Ekspor laporan ke Word atau PDF">Ekspor Word / PDF</button>
   <button onclick="expData()" title="Unduh cadangan data JSON">Cadangkan</button>
@@ -660,23 +722,24 @@ small,.mut{color:var(--mut)}
 <script>
 // =========================================================================
 // KONFIGURASI FIREBASE BAWAAN (ISI DI SINI AGAR OTOMATIS TERHUBUNG)
-// Tempelkan link databaseURL dan konfigurasi project Firebase Anda di bawah:
 // =========================================================================
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "",
   authDomain: "",
-  databaseURL: "https://planner-polytron-4w-default-rtdb.asia-southeast1.firebasedatabase.app/", // <-- TEMPEL LINK FIREBASE DI SINI (contoh: "https://project-anda-default-rtdb.asia-southeast1.firebasedatabase.app")
+  databaseURL: "https://planner-polytron-4w-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "",
   storageBucket: "",
   messagingSenderId: "",
   appId: ""
 };
 const DEFAULT_FIREBASE_PATH = "planner-ev/master";
+const DEFAULT_USERS_PATH = "planner-ev/users";
 // =========================================================================
 
 const $ = s => document.querySelector(s);
 const KEY = "planner-ev-master-v3";
 const FB_CFG_KEY = "planner-ev-firebase-cfg-v1";
+const AUTH_SESSION_KEY = "planner-ev-auth-session-v1";
 const MON = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 const MON_F = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const ST = { p: "Rencana", d: "Dikerjakan", b: "Terblokir", x: "Selesai" };
@@ -696,6 +759,14 @@ const HOL_TONES = {
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const ini = s => String(s || "").trim().split(/\s+/).map(w => w[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+const sanitizeUserId = raw => String(raw || "").trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
+
+// Helper untuk membaca password baik format ringkas (users/{id}: "pass") maupun objek
+function getStoredPassword(entry) {
+  if (typeof entry === "string" || typeof entry === "number") return String(entry);
+  if (entry && typeof entry === "object" && entry.password !== undefined) return String(entry.password);
+  return "";
+}
 
 // Date & Week Helpers (Monday-anchored)
 function parseYMD(s) {
@@ -862,16 +933,208 @@ let focusWeek = "";
 let onlyActivePeriods = true;
 let CL = [];
 let modalPics = [];
+let modalAddOpen = false;
 
-// Firebase Realtime Database State
+// Firebase Realtime Database & Auth State
 let fbApp = null;
 let fbDb = null;
 let fbRef = null;
+let fbUsersRef = null;
 let fbConnRef = null;
 let fbStatus = "off"; // off | connecting | online | offline | error
 let fbErrorMsg = "";
 let fbLastHash = "";
 let fbWriteTimer = null;
+
+// Format ringkas di Firebase: { "royan": "123456", "andi": "andi2026" }
+let fbUsersMap = {};
+let fbUsersLoaded = false;
+let currentUserId = null;
+
+function loadAuthSession() {
+  try {
+    const raw = localStorage.getItem(AUTH_SESSION_KEY);
+    return raw ? sanitizeUserId(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveAuthSession(userId) {
+  currentUserId = userId ? sanitizeUserId(userId) : null;
+  try {
+    if (currentUserId) localStorage.setItem(AUTH_SESSION_KEY, currentUserId);
+    else localStorage.removeItem(AUTH_SESSION_KEY);
+  } catch (e) {}
+  updateUserBadge();
+}
+
+function updateUserBadge() {
+  const pill = $("#user-pill");
+  const lbl = $("#user-lbl");
+  if (!pill || !lbl) return;
+  if (currentUserId) {
+    pill.style.display = "inline-flex";
+    lbl.textContent = `👤 ${currentUserId}`;
+  } else {
+    pill.style.display = "none";
+  }
+}
+
+function isAuthRequired() {
+  return !!getSavedFbSettings();
+}
+
+function syncAuthGate() {
+  const gate = $("#auth-gate");
+  const card = $("#auth-card-inner");
+  if (!gate || !card) return;
+
+  if (!isAuthRequired()) {
+    gate.style.display = "none";
+    return;
+  }
+
+  if (!fbUsersLoaded && fbStatus !== "error") {
+    gate.style.display = "grid";
+    card.innerHTML = `
+      <div style="text-align:center;padding:12px 0">
+        <b style="font-size:18px">Planner EV 4W</b>
+        <p class="mut" style="margin:8px 0 0">Memeriksa akun login di Firebase...</p>
+      </div>`;
+    return;
+  }
+
+  if (fbStatus === "error" && !fbUsersLoaded) {
+    gate.style.display = "grid";
+    card.innerHTML = `
+      <b style="font-size:18px">Koneksi Firebase Bermasalah</b>
+      <p class="mut" style="margin-top:6px">${esc(fbErrorMsg || "Tidak dapat terhubung ke server Firebase.")}</p>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button type="button" class="pri" onclick="location.reload()">Coba Lagi</button>
+        <button type="button" class="sec" onclick="openFirebaseModal()">Atur Firebase</button>
+      </div>`;
+    return;
+  }
+
+  const userIds = Object.keys(fbUsersMap);
+
+  if (currentUserId) {
+    if (fbUsersMap[currentUserId] !== undefined) {
+      updateUserBadge();
+      gate.style.display = "none";
+      return;
+    } else if (userIds.length > 0) {
+      saveAuthSession(null);
+    }
+  }
+
+  gate.style.display = "grid";
+
+  // Jika node users di Firebase masih kosong -> buat ID & Password pertama
+  if (userIds.length === 0) {
+    card.innerHTML = `
+      <b style="font-size:20px">Buat ID &amp; Password Pertama</b>
+      <p class="mut" style="margin:4px 0 12px;font-size:13px">Belum ada ID terdaftar di Firebase. Buat ID dan Password pertama untuk mulai masuk.</p>
+      <form onsubmit="event.preventDefault();createFirstAdmin()">
+        <label>ID Login</label>
+        <input id="init_uid" placeholder="mis. royan" autocomplete="username" required>
+        <label>Password</label>
+        <input id="init_upass" type="password" placeholder="Minimal 4 karakter" autocomplete="new-password" required>
+        <div id="auth-err" class="auth-err"></div>
+        <button type="submit" class="pri" style="width:100%;margin-top:16px">Simpan &amp; Masuk</button>
+      </form>`;
+    setTimeout(() => { const el = $("#init_uid"); if (el) el.focus(); }, 30);
+    return;
+  }
+
+  // Form Login (ID & Password saja)
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <b style="font-size:20px">Login Planner EV</b>
+      <span class="tag ok">Firebase</span>
+    </div>
+    <p class="mut" style="margin:4px 0 12px;font-size:13px">Masukkan ID dan Password yang terdaftar.</p>
+    <form onsubmit="event.preventDefault();handleLoginSubmit()">
+      <label>ID</label>
+      <input id="login_id" placeholder="Masukkan ID" autocomplete="username" required>
+      <label>Password</label>
+      <input id="login_pass" type="password" placeholder="Masukkan Password" autocomplete="current-password" required>
+      <div id="auth-err" class="auth-err"></div>
+      <button type="submit" class="pri" style="width:100%;margin-top:16px">Masuk</button>
+    </form>`;
+  setTimeout(() => { const el = $("#login_id"); if (el) el.focus(); }, 30);
+}
+
+function showAuthError(msg) {
+  const errEl = $("#auth-err");
+  if (!errEl) return;
+  errEl.textContent = msg;
+  errEl.style.display = "block";
+}
+
+async function createFirstAdmin() {
+  const id = sanitizeUserId($("#init_uid").value);
+  const pass = $("#init_upass").value;
+
+  if (!id || id.length < 2) {
+    showAuthError("ID minimal 2 karakter (huruf atau angka tanpa spasi).");
+    return;
+  }
+  if (!pass || pass.length < 4) {
+    showAuthError("Password minimal 4 karakter.");
+    return;
+  }
+  if (!fbUsersRef) {
+    showAuthError("Database Firebase belum siap.");
+    return;
+  }
+
+  try {
+    await fbUsersRef.child(id).set(pass);
+    fbUsersMap[id] = pass;
+    saveAuthSession(id);
+    syncAuthGate();
+    render();
+    toast(`ID "${id}" tersimpan di Firebase`);
+  } catch (e) {
+    showAuthError("Gagal menyimpan ke Firebase: " + (e.message || e));
+  }
+}
+
+function handleLoginSubmit() {
+  const id = sanitizeUserId($("#login_id").value);
+  const pass = $("#login_pass").value;
+
+  if (!id || !pass) {
+    showAuthError("Isi ID dan Password terlebih dahulu.");
+    return;
+  }
+
+  if (fbUsersMap[id] === undefined) {
+    showAuthError("ID tidak ditemukan.");
+    return;
+  }
+
+  const storedPass = getStoredPassword(fbUsersMap[id]);
+  if (storedPass !== pass) {
+    showAuthError("Password salah.");
+    return;
+  }
+
+  saveAuthSession(id);
+  syncAuthGate();
+  render();
+  toast(`Berhasil masuk sebagai ${id}`);
+}
+
+function logoutUser() {
+  if (!confirm("Keluar dari sesi login saat ini?")) return;
+  saveAuthSession(null);
+  closeModal();
+  syncAuthGate();
+  toast("Anda telah keluar");
+}
 
 function getSavedFbSettings() {
   try {
@@ -880,9 +1143,12 @@ function getSavedFbSettings() {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.disabled) return null;
       if (parsed && parsed.config && parsed.config.databaseURL) {
+        const cleanPath = (parsed.dbPath || DEFAULT_FIREBASE_PATH).replace(/^\/+|\/+$/g, "") || DEFAULT_FIREBASE_PATH;
+        const usersPath = (parsed.usersPath || cleanPath.replace(/\/[^/]+$/, "/users") || DEFAULT_USERS_PATH).replace(/^\/+|\/+$/g, "");
         return {
           config: parsed.config,
-          dbPath: (parsed.dbPath || DEFAULT_FIREBASE_PATH).replace(/^\/+|\/+$/g, "") || DEFAULT_FIREBASE_PATH
+          dbPath: cleanPath,
+          usersPath
         };
       }
     }
@@ -894,9 +1160,12 @@ function getSavedFbSettings() {
       if (v && String(v).trim()) cleanCfg[k] = String(v).trim();
     });
     cleanCfg.databaseURL = cleanCfg.databaseURL.replace(/\/+$/, "");
+    const cleanPath = (DEFAULT_FIREBASE_PATH || "planner-ev/master").replace(/^\/+|\/+$/g, "") || "planner-ev/master";
+    const usersPath = (DEFAULT_USERS_PATH || "planner-ev/users").replace(/^\/+|\/+$/g, "") || "planner-ev/users";
     return {
       config: cleanCfg,
-      dbPath: (DEFAULT_FIREBASE_PATH || "planner-ev/master").replace(/^\/+|\/+$/g, "") || "planner-ev/master",
+      dbPath: cleanPath,
+      usersPath,
       fromHtml: true
     };
   }
@@ -960,22 +1229,30 @@ function detachFirebaseListeners() {
     try { fbRef.off(); } catch (e) {}
     fbRef = null;
   }
+  if (fbUsersRef) {
+    try { fbUsersRef.off(); } catch (e) {}
+    fbUsersRef = null;
+  }
   if (fbConnRef) {
     try { fbConnRef.off(); } catch (e) {}
     fbConnRef = null;
   }
+  fbUsersLoaded = false;
+  fbUsersMap = {};
 }
 
 async function initFirebaseSync(settings, isManualConnect = false) {
   if (!settings || !settings.config || !settings.config.databaseURL) {
     fbStatus = "off";
     updateFbBadge();
+    syncAuthGate();
     return false;
   }
   if (typeof firebase === "undefined") {
     fbStatus = "error";
     fbErrorMsg = "SDK Firebase gagal dimuat (periksa koneksi internet).";
     updateFbBadge();
+    syncAuthGate();
     if (isManualConnect) toast(fbErrorMsg);
     return false;
   }
@@ -984,6 +1261,7 @@ async function initFirebaseSync(settings, isManualConnect = false) {
   fbStatus = "connecting";
   fbErrorMsg = "";
   updateFbBadge();
+  syncAuthGate();
 
   try {
     const appName = "planner-ev-app-" + (settings.config.projectId || "default");
@@ -995,7 +1273,10 @@ async function initFirebaseSync(settings, isManualConnect = false) {
     fbDb = firebase.database(fbApp);
 
     const cleanPath = (settings.dbPath || "planner-ev/master").replace(/^\/+|\/+$/g, "") || "planner-ev/master";
+    const usersPath = (settings.usersPath || cleanPath.replace(/\/[^/]+$/, "/users") || "planner-ev/users").replace(/^\/+|\/+$/g, "");
+
     fbRef = fbDb.ref(cleanPath);
+    fbUsersRef = fbDb.ref(usersPath);
     fbConnRef = fbDb.ref(".info/connected");
 
     fbConnRef.on("value", snap => {
@@ -1007,7 +1288,21 @@ async function initFirebaseSync(settings, isManualConnect = false) {
       updateFbBadge();
     });
 
-    // Initial handshake to avoid accidental overwrite
+    // Muat daftar ID & Password dari Firebase secara real-time
+    const initUsersSnap = await fbUsersRef.once("value");
+    fbUsersMap = initUsersSnap.val() || {};
+    fbUsersLoaded = true;
+
+    fbUsersRef.on("value", snap => {
+      fbUsersMap = snap.val() || {};
+      fbUsersLoaded = true;
+      syncAuthGate();
+      if (page === "tim" && $("#ov").style.display !== "grid") {
+        render();
+      }
+    });
+
+    // Initial handshake untuk data planner
     const initSnap = await fbRef.once("value");
     const remoteVal = initSnap.val();
     const localHasData = S.tasks.length > 0 || S.cats.length > 0 || allMembersList().length > 0;
@@ -1015,11 +1310,9 @@ async function initFirebaseSync(settings, isManualConnect = false) {
     const remoteHasData = remoteNorm && (remoteNorm.tasks.length > 0 || remoteNorm.cats.length > 0 || remoteNorm.teams.some(tm => (tm.members || []).length > 0));
 
     if (!remoteHasData && localHasData) {
-      // Remote empty, upload local data
       pushStateToFirebase(true);
       if (isManualConnect) toast("Terhubung! Data lokal berhasil diunggah ke Firebase.");
     } else if (remoteHasData && !localHasData) {
-      // Local empty, pull remote data
       S = remoteNorm;
       fbLastHash = JSON.stringify(S);
       localStorage.setItem(KEY, JSON.stringify(S));
@@ -1050,15 +1343,15 @@ async function initFirebaseSync(settings, isManualConnect = false) {
       }
       if (isManualConnect) toast("Firebase Realtime Database tersinkron.");
     } else {
-      // Both empty: seed default state to Firebase
       pushStateToFirebase(true);
       if (isManualConnect) toast("Firebase Realtime Database terhubung.");
     }
 
     fbStatus = "online";
     updateFbBadge();
+    syncAuthGate();
 
-    // Real-time listener for updates from other devices/teammates
+    // Real-time listener untuk data planner
     fbRef.on("value", snap => {
       const val = snap.val();
       if (!val) return;
@@ -1076,6 +1369,7 @@ async function initFirebaseSync(settings, isManualConnect = false) {
       fbStatus = "error";
       fbErrorMsg = err && err.message ? err.message : String(err);
       updateFbBadge();
+      syncAuthGate();
     });
 
     return true;
@@ -1083,8 +1377,147 @@ async function initFirebaseSync(settings, isManualConnect = false) {
     fbStatus = "error";
     fbErrorMsg = err && err.message ? err.message : String(err);
     updateFbBadge();
+    syncAuthGate();
     if (isManualConnect) toast("Koneksi Firebase gagal: " + fbErrorMsg);
     return false;
+  }
+}
+
+// ==========================================
+// MANAJEMEN ID & PASSWORD RINGKAS DI FIREBASE
+// ==========================================
+async function addFirebaseUserAccount(idInput, passInput) {
+  if (!fbUsersRef) {
+    toast("Hubungkan ke Firebase terlebih dahulu.");
+    return false;
+  }
+  const id = sanitizeUserId(idInput);
+  const pass = String(passInput || "");
+
+  if (!id || id.length < 2) {
+    toast("ID minimal 2 karakter (huruf atau angka tanpa spasi).");
+    return false;
+  }
+  if (!pass || pass.length < 4) {
+    toast("Password minimal 4 karakter.");
+    return false;
+  }
+  if (fbUsersMap[id] !== undefined) {
+    toast(`ID "${id}" sudah ada. Gunakan ID lain atau ganti password.`);
+    return false;
+  }
+
+  try {
+    await fbUsersRef.child(id).set(pass);
+    toast(`ID "${id}" berhasil ditambahkan ke Firebase`);
+    return true;
+  } catch (e) {
+    toast("Gagal menambah ID: " + (e.message || e));
+    return false;
+  }
+}
+
+async function resetFirebaseUserPassword(userId) {
+  if (!fbUsersRef || fbUsersMap[userId] === undefined) return;
+  const newPass = prompt(`Masukkan password baru untuk ID "${userId}" (minimal 4 karakter):`);
+  if (!newPass) return;
+  if (newPass.length < 4) {
+    toast("Password minimal 4 karakter.");
+    return;
+  }
+  try {
+    await fbUsersRef.child(userId).set(newPass);
+    toast(`Password untuk "${userId}" diperbarui`);
+  } catch (e) {
+    toast("Gagal memperbarui password: " + (e.message || e));
+  }
+}
+
+async function deleteFirebaseUserAccount(userId) {
+  if (!fbUsersRef || fbUsersMap[userId] === undefined) return;
+  const allIds = Object.keys(fbUsersMap);
+  if (allIds.length <= 1) {
+    toast("Tidak bisa menghapus satu-satunya ID tersisa.");
+    return;
+  }
+  if (!confirm(`Hapus ID "${userId}" dari Firebase?`)) return;
+  try {
+    await fbUsersRef.child(userId).remove();
+    toast(`ID "${userId}" dihapus`);
+  } catch (e) {
+    toast("Gagal menghapus ID: " + (e.message || e));
+  }
+}
+
+function renderAccountRowsHTML() {
+  const ids = Object.keys(fbUsersMap).sort((a, b) => a.localeCompare(b));
+  if (!ids.length) return `<p class="mut">Belum ada ID terdaftar di Firebase.</p>`;
+  return ids.map(id => {
+    const isMe = currentUserId === id;
+    return `
+    <div class="row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="av">${esc(ini(id))}</span>
+        <div>
+          <b>${esc(id)}</b>
+          ${isMe ? `<span class="tag ok" style="margin-left:6px">Aktif</span>` : ""}
+        </div>
+      </div>
+      <div class="acts">
+        <button type="button" class="sec" style="padding:5px 11px;font-size:12px" onclick="resetFirebaseUserPassword('${esc(id)}')">Ganti Password</button>
+        ${!isMe ? `<button type="button" class="sec" style="padding:5px 11px;font-size:12px;color:var(--bad)" onclick="deleteFirebaseUserAccount('${esc(id)}')">Hapus</button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function openAccountModal() {
+  const usersPath = getSavedFbSettings()?.usersPath || DEFAULT_USERS_PATH;
+  $("#md").innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div>
+        <b style="font-size:18px">Kelola ID &amp; Password</b>
+        <small style="display:block">Lokasi Firebase: <code>${esc(usersPath)}</code></small>
+      </div>
+      ${currentUserId ? `<button type="button" class="sec" style="color:var(--bad);border-color:var(--bad)" onclick="logoutUser()">Keluar</button>` : ""}
+    </div>
+
+    ${fbUsersRef ? `
+      <div style="margin-top:14px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--ln)">
+        <b style="font-size:13.5px">+ Tambah ID &amp; Password Baru</b>
+        <form style="margin-top:8px" onsubmit="event.preventDefault();submitNewAccountFromModal()">
+          <div class="two">
+            <label style="margin-top:4px">ID (Key)
+              <input id="acc_id" placeholder="mis. andi" required>
+            </label>
+            <label style="margin-top:4px">Password (Value)
+              <input id="acc_pass" type="password" placeholder="Min 4 karakter" required>
+            </label>
+          </div>
+          <button type="submit" class="pri" style="margin-top:12px;padding:8px 16px">+ Simpan ke Firebase</button>
+        </form>
+      </div>
+
+      <div style="margin-top:14px">
+        <b style="font-size:14px">Daftar ID Terdaftar (${Object.keys(fbUsersMap).length})</b>
+        <div id="modal-acc-list" style="margin-top:6px">${renderAccountRowsHTML()}</div>
+      </div>
+    ` : `
+      <p class="mut" style="margin-top:12px">Firebase belum terhubung. Hubungkan Firebase terlebih dahulu.</p>
+    `}
+
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button type="button" class="sec" onclick="closeModal()">Tutup</button>
+    </div>`;
+
+  $("#ov").style.display = "grid";
+}
+
+async function submitNewAccountFromModal() {
+  const ok = await addFirebaseUserAccount($("#acc_id").value, $("#acc_pass").value);
+  if (ok) {
+    openAccountModal();
+    if (page === "tim") render();
   }
 }
 
@@ -1117,7 +1550,7 @@ function fillFbFieldsFromSnippet() {
 }
 
 function openFirebaseModal() {
-  const saved = getSavedFbSettings() || { config: {}, dbPath: "planner-ev/master" };
+  const saved = getSavedFbSettings() || { config: {}, dbPath: "planner-ev/master", usersPath: "planner-ev/users" };
   const c = saved.config || {};
   const statusLabel = {
     off: "Belum terhubung (hanya tersimpan di browser ini)",
@@ -1129,7 +1562,7 @@ function openFirebaseModal() {
 
   $("#md").innerHTML = `
     <b style="font-size:18px">Database Firebase Realtime</b>
-    <small style="display:block;margin-top:2px">Simpan data planner di cloud agar tersinkron otomatis antar anggota tim &amp; perangkat</small>
+    <small style="display:block;margin-top:2px">Simpan data planner &amp; akun login ID/Password di cloud agar tersinkron otomatis</small>
 
     <div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--ln);display:flex;align-items:center;gap:8px">
       <span class="fb-dot ${fbStatus === "off" ? "" : fbStatus}"></span>
@@ -1137,7 +1570,7 @@ function openFirebaseModal() {
     </div>
 
     <label>Cara Cepat: Tempel kode <code>firebaseConfig</code> dari Firebase Console</label>
-    <textarea id="fb_snippet" rows="4" placeholder='Tempel const firebaseConfig = { apiKey: "...", databaseURL: "https://...", projectId: "...", appId: "..." }; di sini lalu klik Baca Konfigurasi'></textarea>
+    <textarea id="fb_snippet" rows="3" placeholder='Tempel const firebaseConfig = { apiKey: "...", databaseURL: "https://...", projectId: "...", appId: "..." }; di sini lalu klik Baca Konfigurasi'></textarea>
     <div style="margin-top:6px">
       <button type="button" class="sec" style="padding:6px 12px;font-size:12px" onclick="fillFbFieldsFromSnippet()">Baca Konfigurasi dari Teks</button>
     </div>
@@ -1146,33 +1579,24 @@ function openFirebaseModal() {
     <input id="fb_dburl" value="${esc(c.databaseURL || "")}" placeholder="https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app">
 
     <div class="two">
-      <label>Project ID
-        <input id="fb_projid" value="${esc(c.projectId || "")}" placeholder="nama-project-ev">
-      </label>
-      <label>Path Penyimpanan di Database
+      <label>Path Data Planner
         <input id="fb_path" value="${esc(saved.dbPath || "planner-ev/master")}" placeholder="planner-ev/master">
+      </label>
+      <label>Path Akun Login (ID &amp; Password)
+        <input id="fb_upath" value="${esc(saved.usersPath || "planner-ev/users")}" placeholder="planner-ev/users">
       </label>
     </div>
 
     <div class="two">
+      <label>Project ID
+        <input id="fb_projid" value="${esc(c.projectId || "")}" placeholder="nama-project-ev">
+      </label>
       <label>API Key
         <input id="fb_apikey" value="${esc(c.apiKey || "")}" placeholder="AIzaSy...">
       </label>
-      <label>App ID
-        <input id="fb_appid" value="${esc(c.appId || "")}" placeholder="1:123456789:web:abcdef">
-      </label>
     </div>
+    <input type="hidden" id="fb_appid" value="${esc(c.appId || "")}">
     <input type="hidden" id="fb_authdom" value="${esc(c.authDomain || "")}">
-
-    <details style="margin-top:12px;font-size:12.5px;color:var(--mut)">
-      <summary style="cursor:pointer;color:var(--ink);font-weight:600">Panduan singkat setup di Firebase Console</summary>
-      <ol style="margin:6px 0 0 18px;padding:0;line-height:1.5">
-        <li>Buka <b>console.firebase.google.com</b> → buat/pilih project.</li>
-        <li>Masuk ke <b>Build → Realtime Database → Create Database</b>, lalu salin URL database-nya (<code>https://...firebasedatabase.app</code>).</li>
-        <li>Pada tab <b>Rules</b> di Realtime Database, pastikan izin baca/tulis aktif untuk path planner (atau mode test).</li>
-        <li>Buka <b>Project Settings → General → Your apps (Web)</b>, salin <code>firebaseConfig</code> dan tempel di atas.</li>
-      </ol>
-    </details>
 
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button type="button" class="pri" onclick="saveAndConnectFirebase()">Hubungkan &amp; Simpan</button>
@@ -1193,6 +1617,7 @@ async function saveAndConnectFirebase() {
   const appId = $("#fb_appid").value.trim() || snippetParsed.appId || "";
   const authDomain = $("#fb_authdom").value.trim() || snippetParsed.authDomain || (projectId ? `${projectId}.firebaseapp.com` : "");
   const dbPath = ($("#fb_path").value.trim() || "planner-ev/master").replace(/^\/+|\/+$/g, "") || "planner-ev/master";
+  const usersPath = ($("#fb_upath").value.trim() || "planner-ev/users").replace(/^\/+|\/+$/g, "") || "planner-ev/users";
 
   if (!databaseURL || !databaseURL.startsWith("https://")) {
     toast("Isi Database URL Firebase yang valid (diawali https://)");
@@ -1207,7 +1632,8 @@ async function saveAndConnectFirebase() {
       projectId,
       appId
     },
-    dbPath
+    dbPath,
+    usersPath
   };
 
   try {
@@ -1238,10 +1664,12 @@ function disconnectFirebase() {
       localStorage.removeItem(FB_CFG_KEY);
     }
   } catch (e) {}
+  saveAuthSession(null);
   fbStatus = "off";
   fbErrorMsg = "";
   fbLastHash = "";
   updateFbBadge();
+  syncAuthGate();
   closeModal();
   if (page === "atur") render();
   toast("Koneksi Firebase diputuskan");
@@ -1363,9 +1791,23 @@ function filterBar() {
 // ==========================================
 // TAB 1: PLANNER (BULAN & MINGGU + DETAIL)
 // ==========================================
+let curColW = 50;
+let fitView = true;
+try { fitView = localStorage.getItem("planner-ev-fit") !== "0"; } catch (e) {}
+function calcColW() {
+  if (!fitView) return 50;
+  const avail = document.documentElement.clientWidth - 28 - 2 - 190;
+  return Math.max(20, Math.min(64, Math.floor(avail / Math.max(1, S.weeksCount))));
+}
+function toggleFit() {
+  fitView = !fitView;
+  try { localStorage.setItem("planner-ev-fit", fitView ? "1" : "0"); } catch (e) {}
+  render();
+}
 function renderPlanner() {
   const { cols, months } = buildCols();
-  const COL_W = 50;
+  const COL_W = calcColW();
+  curColW = COL_W;
   const ROW_H = 50;
   const PAD = 10;
   const totalW = cols.length * COL_W;
@@ -1496,8 +1938,9 @@ function renderPlanner() {
       <button class="sec" onclick="shiftRange(-13)">‹ 3 bln</button>
       <button class="sec" onclick="jumpNow()">Bulan ini</button>
       <button class="sec" onclick="shiftRange(13)">3 bln ›</button>
-      <button class="sec" onclick="page='tim';render()">Atur anggota tim</button>
+      <button class="sec" onclick="page='tim';render()">Atur anggota &amp; ID</button>
       <button class="sec" onclick="addCatPrompt()">+ Kategori</button>
+      <button class="sec" onclick="toggleFit()" title="${fitView ? "Kembali ke lebar kolom normal (bisa digeser)" : "Pas-kan seluruh minggu ke lebar layar"}">${fitView ? "Lebar normal" : "Muat satu layar"}</button>
       <button class="pri" onclick="openModal()">Tugas baru</button>
     </div>
   </div>
@@ -1505,7 +1948,7 @@ function renderPlanner() {
   ${filterBar()}
 
   <div class="cd">
-    <div class="tl-wrap">
+    <div class="tl-wrap ${COL_W < 34 ? "tight" : ""}">
       <div class="tl-inner">
         <div class="tl-hdr">
           <div class="tl-hrow">
@@ -1761,14 +2204,14 @@ function adv(id) {
 }
 
 // ==========================================
-// TAB 5: TIM & ANGGOTA
+// TAB 5: TIM, ANGGOTA & ID/PASSWORD FIREBASE
 // ==========================================
 function renderTim() {
   return `
   <div class="hdr">
     <div>
       <h1>Tim &amp; Anggota</h1>
-      <p class="sub">Tambahkan nama-nama anggota di masing-masing tim agar bisa dipilih saat membuat tugas</p>
+      <p class="sub">Kelola anggota di masing-masing tim dan ID &amp; Password login di Firebase</p>
     </div>
     <div class="acts">
       <button class="pri" onclick="openModal()">Tugas baru</button>
@@ -1807,7 +2250,33 @@ function renderTim() {
         </div>
       </div>`;
     }).join("")}
+  </div>
+
+  <div class="cd" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
+      <div>
+        <b style="font-size:17px">Akun Login Firebase (ID &amp; Password)</b>
+        <small style="display:block">Cukup masukkan ID (Key) dan Password (Value) untuk menambahkan akses login</small>
+      </div>
+      ${currentUserId ? `<button type="button" class="sec" style="color:var(--bad);border-color:var(--bad)" onclick="logoutUser()">Keluar (${esc(currentUserId)})</button>` : ""}
+    </div>
+
+    ${fbUsersRef ? `
+      <form style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px" onsubmit="event.preventDefault();submitNewAccountFromTab()">
+        <input id="tab_acc_id" placeholder="ID (mis. andi)" style="flex:1;min-width:160px;border:1px solid var(--ln);background:var(--bg);border-radius:99px;padding:8px 14px" required>
+        <input id="tab_acc_pass" type="password" placeholder="Password (min 4 karakter)" style="flex:1;min-width:180px;border:1px solid var(--ln);background:var(--bg);border-radius:99px;padding:8px 14px" required>
+        <button type="submit" class="pri" style="padding:8px 16px">+ Tambah ID</button>
+      </form>
+      <div style="margin-top:14px">${renderAccountRowsHTML()}</div>
+    ` : `
+      <p class="mut" style="margin:12px 0 0">Firebase belum terhubung. <button type="button" class="sec" style="padding:5px 12px;margin-left:6px" onclick="openFirebaseModal()">Hubungkan Firebase</button></p>
+    `}
   </div>`;
+}
+
+async function submitNewAccountFromTab() {
+  const ok = await addFirebaseUserAccount($("#tab_acc_id").value, $("#tab_acc_pass").value);
+  if (ok) render();
 }
 
 function addMember(teamId, inputEl) {
@@ -1846,7 +2315,6 @@ function removeMember(teamId, mIdx) {
 function renderAtur() {
   const { months } = buildAllWeeksData("2025-01-06", 160);
   const mOpts = selM => months.map(m => `<option value="${m.mKey}" ${m.mKey === selM ? "selected" : ""}>${m.mFull}</option>`).join("");
-  const curM = wkMeta(CUR_MON).mKey;
   const startM = wkMeta(S.startWk).mKey;
 
   return `
@@ -1898,11 +2366,12 @@ function renderAtur() {
   <div class="cd" style="margin-top:12px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
       <div>
-        <b>Sinkronisasi Database Firebase</b>
+        <b>Sinkronisasi Database &amp; Login Firebase</b>
         <small style="display:block">${getSavedFbSettings() ? `Terhubung ke ${esc(getSavedFbSettings().config.databaseURL)} (path: ${esc(getSavedFbSettings().dbPath)})` : "Belum dikonfigurasi — data saat ini hanya tersimpan di browser lokal."}</small>
       </div>
       <div class="acts">
         <button class="pri" style="padding:7px 14px" onclick="openFirebaseModal()">Atur Koneksi Firebase</button>
+        <button class="sec" style="padding:7px 14px" onclick="openAccountModal()">Kelola ID &amp; Password</button>
         ${fbRef ? `<button class="sec" style="padding:7px 14px" onclick="forcePushFirebase()">Sinkronkan Sekarang</button>` : ""}
       </div>
     </div>
@@ -2301,7 +2770,6 @@ function buildReportMarkup(opts) {
       <div style="font-size:10pt;color:#4b5563;">${esc(opts.sub)}</div>
     </div>`;
 
-  // 1. Executive Summary per Team & Status
   if (opts.incSum) {
     html += `
     <div style="font-size:11.5pt;font-weight:bold;margin:12px 0 6px 0;">1. Ringkasan Eksekutif Per Tim &amp; Status</div>
@@ -2345,7 +2813,6 @@ function buildReportMarkup(opts) {
     </table>`;
   }
 
-  // 2. Schedule Matrix (Month & Week Overview)
   if (opts.incMat) {
     html += `
     <div style="font-size:11.5pt;font-weight:bold;margin:14px 0 6px 0;">2. Matriks Jadwal Bulanan &amp; Mingguan</div>
@@ -2384,7 +2851,6 @@ function buildReportMarkup(opts) {
     </table>`;
   }
 
-  // 3. Detailed Task & Work Breakdown Table
   if (opts.incDet) {
     html += `
     <div style="font-size:11.5pt;font-weight:bold;margin:14px 0 6px 0;">3. Rincian Tugas &amp; Detail yang Dikerjakan</div>
@@ -2568,40 +3034,15 @@ function buildAllWeeksData(base = "2025-01-06", count = 160) {
   return _cacheWeeks;
 }
 
-function syncWeekSelect(prefix, targetYmd = null) {
-  const mSel = $(`#${prefix}_m`);
-  const wSel = $(`#${prefix}_w`);
-  if (!mSel || !wSel) return;
-  const { byMonth } = buildAllWeeksData();
-  const weeks = byMonth[mSel.value] || [];
-  wSel.innerHTML = weeks.map(w =>
-    `<option value="${w.ymd}">${w.mWeekLabel} (${w.rangeShort}) · ${w.wCode}</option>`
-  ).join("");
-  if (targetYmd && weeks.some(w => w.ymd === targetYmd)) {
-    wSel.value = targetYmd;
-  }
-  updateSpanPreview();
-}
-
-function updateSpanPreview() {
-  const el = $("#span_prev");
-  const sw = $("#fs_w")?.value;
-  const ew = $("#fe_w")?.value;
-  if (!el || !sw || !ew) return;
-  const [a, b] = sw <= ew ? [sw, ew] : [ew, sw];
-  el.textContent = `Jadwal terpilih: ${spanText(a, b)}`;
-}
-
 // ==========================================
-// KALENDER PEMILIH TANGGAL (gaya Windows)
-// Klik tanggal -> minggu yang berisi tanggal itu terpilih
+// KALENDER PEMILIH TANGGAL
 // ==========================================
 const CALS = {};
-function calMount(elId, prefix, sYmd, eYmd) {
+function calMount(elId, prefix, sYmd, eYmd, simple = false) {
   const s = fmtYMD(getMonday(parseYMD(sYmd)));
   const e = fmtYMD(getMonday(parseYMD(eYmd)));
   const th = parseYMD(s); th.setDate(th.getDate() + 3);
-  CALS[prefix] = { elId, prefix, s, e: e < s ? s : e, active: "s", y: th.getFullYear(), m: th.getMonth() };
+  CALS[prefix] = { elId, prefix, s, e: e < s ? s : e, active: "s", simple, open: false, y: th.getFullYear(), m: th.getMonth() };
   calRender(prefix);
 }
 function calRender(prefix) {
@@ -2626,12 +3067,7 @@ function calRender(prefix) {
       cells += `<button type="button" class="cal-d ${cls} ${d.getMonth() !== c.m ? "o" : ""} ${ds === today ? "today" : ""} ${i === 6 ? "wr" : ""}" title="${d.getDate()} ${MON_F[d.getMonth()]} ${d.getFullYear()}" onclick="calPick('${prefix}','${ds}')"><span>${d.getDate()}</span></button>`;
     }
   }
-  const box = (key, label, ymd) => {
-    const m = wkMeta(ymd);
-    return `<button type="button" class="cal-sel ${c.active === key ? "on" : ""}" onclick="calActive('${prefix}','${key}')"><small>${label}</small><b>${m.mWeekLabel} ${m.mFull}</b><span>${m.rangeShort} · ${m.wCode}</span></button>`;
-  };
-  host.innerHTML = `
-    <div class="cal-top">${box("s", "Mulai dikerjakan", c.s)}${box("e", "Selesai dikerjakan", c.e)}</div>
+  const calBox = `
     <div class="cal-box">
       <div class="cal-nav">
         <b>${MON_F[c.m]} ${c.y}</b>
@@ -2640,13 +3076,57 @@ function calRender(prefix) {
         <button type="button" onclick="calNav('${prefix}',1)" aria-label="Bulan berikutnya">▼</button>
       </div>
       <div class="cal-g">${cells}</div>
-    </div>
+    </div>`;
+
+  if (c.simple) {
+    const len = diffWeeks(c.s, c.e) + 1;
+    host.innerHTML = `
+      <button type="button" class="cal-sum ${c.open ? "on" : ""}" onclick="calToggle('${prefix}')" aria-expanded="${c.open}">
+        <span>${spanText(c.s, c.e)}</span><i>${c.open ? "Tutup" : "Ubah"}</i>
+      </button>
+      <div class="cal-dur">
+        <span>Lama pengerjaan</span>
+        <button type="button" onclick="calDur('${prefix}',-1)" ${len <= 1 ? "disabled" : ""} aria-label="Kurangi satu minggu">−</button>
+        <b>${len} minggu</b>
+        <button type="button" onclick="calDur('${prefix}',1)" aria-label="Tambah satu minggu">+</button>
+      </div>
+      ${c.open ? calBox : ""}`;
+    return;
+  }
+
+  const box = (key, label, ymd) => {
+    const m = wkMeta(ymd);
+    return `<button type="button" class="cal-sel ${c.active === key ? "on" : ""}" onclick="calActive('${prefix}','${key}')"><small>${label}</small><b>${m.mWeekLabel} ${m.mFull}</b><span>${m.rangeShort} · ${m.wCode}</span></button>`;
+  };
+  host.innerHTML = `
+    <div class="cal-top">${box("s", "Mulai dikerjakan", c.s)}${box("e", "Selesai dikerjakan", c.e)}</div>
+    ${calBox}
     <div class="cal-prev">Jadwal terpilih: ${spanText(c.s, c.e)}</div>`;
+}
+function calToggle(prefix) {
+  const c = CALS[prefix];
+  c.open = !c.open;
+  calRender(prefix);
+}
+function calDur(prefix, n) {
+  const c = CALS[prefix];
+  c.e = addWeeks(c.s, Math.max(0, diffWeeks(c.s, c.e) + n));
+  calRender(prefix);
 }
 function calPick(prefix, ds) {
   const c = CALS[prefix];
   const d = parseYMD(ds);
   const mon = fmtYMD(getMonday(d));
+  if (c.simple) {
+    const span = diffWeeks(c.s, c.e);
+    c.s = mon;
+    c.e = addWeeks(mon, span);
+    c.open = false;
+    c.y = d.getFullYear();
+    c.m = d.getMonth();
+    calRender(prefix);
+    return;
+  }
   if (c.active === "s") {
     c.s = mon;
     if (c.e < c.s) c.e = c.s;
@@ -2698,6 +3178,7 @@ function renderModalMembers() {
   const tm = teamById(tmId);
   const pool = [...new Set([...(tm.members || []), ...modalPics])];
 
+  const showAdd = modalAddOpen || !pool.length;
   box.innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
       ${pool.map(name => {
@@ -2707,12 +3188,21 @@ function renderModalMembers() {
           <span class="av">${esc(ini(name))}</span>
           <span>${esc(name)}</span>
         </span>`;
-      }).join("") || `<small>Belum ada nama anggota di ${esc(tm.short)}. Tambahkan di bawah:</small>`}
+      }).join("")}
+      ${showAdd ? "" : `<span class="mpick add" onclick="openModalAdd()">+ Anggota</span>`}
     </div>
+    ${showAdd ? `
     <div style="display:flex;gap:6px;margin-top:8px">
-      <input id="new_pic_inp" placeholder="Tambah nama anggota baru ke ${esc(tm.short)}..." style="margin:0;flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();quickAddModalPic()}">
-      <button type="button" class="sec" style="padding:7px 13px" onclick="quickAddModalPic()">+ Tambah nama</button>
-    </div>`;
+      <input id="new_pic_inp" placeholder="Nama anggota baru di ${esc(tm.short)}..." style="margin:0;flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();quickAddModalPic()}else if(event.key==='Escape'&&${pool.length ? "true" : "false"}){event.stopPropagation();modalAddOpen=false;renderModalMembers()}">
+      <button type="button" class="sec" style="padding:7px 13px" onclick="quickAddModalPic()">Tambah</button>
+    </div>` : ""}`;
+}
+
+function openModalAdd() {
+  modalAddOpen = true;
+  renderModalMembers();
+  const inp = $("#new_pic_inp");
+  if (inp) inp.focus();
 }
 
 function toggleModalPic(name) {
@@ -2737,6 +3227,7 @@ function quickAddModalPic() {
     }
   }
   if (!modalPics.includes(name)) modalPics.push(name);
+  modalAddOpen = false;
   renderModalMembers();
 }
 
@@ -2768,11 +3259,8 @@ function openModal(id = null, preCat = null, preWk = null, preEnd = null) {
   CL = (o.items || []).map(x => ({ ...x }));
   if (!CL.length) CL.push({ t: "", x: false });
   modalPics = [...(o.pics || [])];
+  modalAddOpen = false;
 
-  const { months } = buildAllWeeksData();
-  const sMeta = wkMeta(o.startWk);
-  const eMeta = wkMeta(o.endWk);
-  const mOpts = selM => months.map(m => `<option value="${m.mKey}" ${m.mKey === selM ? "selected" : ""}>${m.mFull}</option>`).join("");
   const others = S.tasks.filter(x => !t || x.id !== t.id).sort((a, b) => a.startWk.localeCompare(b.startWk));
   const curCatName = o.cat ? catName(o.cat) : "";
 
@@ -2797,7 +3285,7 @@ function openModal(id = null, preCat = null, preWk = null, preEnd = null) {
     <label>Anggota tim yang mengerjakan (klik nama untuk memilih)</label>
     <div id="pic_box"></div>
 
-    <label>Jadwal pengerjaan (klik tanggal di kalender)</label>
+    <label>Jadwal pengerjaan</label>
     <div id="cal_f"></div>
     <input type="hidden" id="fs_w" value="${o.startWk}"><input type="hidden" id="fe_w" value="${o.endWk}">
 
@@ -2840,7 +3328,7 @@ function openModal(id = null, preCat = null, preWk = null, preEnd = null) {
     </div>`;
 
   renderModalMembers();
-  calMount("cal_f", "f", o.startWk, o.endWk);
+  calMount("cal_f", "f", o.startWk, o.endWk, true);
   renderCL();
   $("#ov").style.display = "grid";
   setTimeout(() => { const ft = $("#f_t"); if (ft) ft.focus(); }, 30);
@@ -2925,7 +3413,7 @@ document.addEventListener("pointerdown", e => {
 });
 document.addEventListener("pointermove", e => {
   if (!dg) return;
-  const dc = Math.round((e.clientX - dg.x) / 50);
+  const dc = Math.round((e.clientX - dg.x) / curColW);
   if (dc === dg.dc) return;
   dg.dc = dc;
   if (dg.rz === "mv") {
@@ -3034,12 +3522,24 @@ function render() {
   }
 }
 
+let _rzT;
+window.addEventListener("resize", () => {
+  clearTimeout(_rzT);
+  _rzT = setTimeout(() => {
+    if (page === "planner" && !dg && $("#ov").style.display !== "grid" && calcColW() !== curColW) render();
+  }, 150);
+});
+
+currentUserId = loadAuthSession();
+updateUserBadge();
 render();
+
 const _savedFb = getSavedFbSettings();
 if (_savedFb) {
   initFirebaseSync(_savedFb, false);
 } else {
   updateFbBadge();
+  syncAuthGate();
 }
 </script>
 </body>
