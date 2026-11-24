@@ -1,0 +1,3046 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planner EV — Bulanan &amp; Mingguan</title>
+<style>
+:root{
+  --bg:#e9e8e3;
+  --cd:#f5f4f0;
+  --ink:#161614;
+  --mut:#7a7a74;
+  --ln:#d5d4ce;
+  --inv:#fff;
+  --bad:#b3261e;
+  --ok:#2e6f40;
+  color-scheme:light;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e0e0d;
+    --cd:#1a1a19;
+    --ink:#f2f2ee;
+    --mut:#8d8d86;
+    --ln:#2e2e2b;
+    --inv:#111;
+    --bad:#f2766d;
+    --ok:#7bc68e;
+    color-scheme:dark;
+  }
+  :root:not([data-theme="light"]) select option{
+    background-color:#1a1a19;
+    color:#f2f2ee;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e0e0d;
+  --cd:#1a1a19;
+  --ink:#f2f2ee;
+  --mut:#8d8d86;
+  --ln:#2e2e2b;
+  --inv:#111;
+  --bad:#f2766d;
+  --ok:#7bc68e;
+  color-scheme:dark;
+}
+:root[data-theme="dark"] select option{
+  background-color:#1a1a19;
+  color:#f2f2ee;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font:14px/1.45 "Inter",system-ui,sans-serif;
+  padding:14px;
+  max-width:1460px;
+  margin:auto;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+select{background-color:var(--cd);color:var(--ink)}
+select option{background-color:#f5f4f0;color:#161614}
+button{cursor:pointer}
+
+/* Navigation Pill Bar */
+.nav{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  background:var(--cd);
+  border-radius:99px;
+  padding:6px;
+  margin-bottom:22px;
+  overflow-x:auto;
+}
+.nav-logo{height:18px;width:auto;margin:0 10px 0 10px;flex:none;display:block;cursor:pointer}
+.nav .sp{flex:1}
+.nav button,.pill{
+  border:0;
+  background:none;
+  border-radius:99px;
+  padding:8px 16px;
+  white-space:nowrap;
+}
+.nav button.on,.pill.on,.pri{
+  background:var(--ink);
+  color:var(--inv);
+}
+.pri{
+  border:0;
+  border-radius:99px;
+  padding:10px 18px;
+  white-space:nowrap;
+}
+.sec{
+  border:1px solid var(--ln);
+  background:none;
+  border-radius:99px;
+  padding:9px 16px;
+  white-space:nowrap;
+}
+select.sec{
+  background-color:var(--cd);
+  color:var(--ink);
+}
+.sec:hover,.nav button:hover,.pill:hover{opacity:.82}
+.fb-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--ln)!important;
+  font-size:12.5px;
+}
+.fb-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--mut);
+  flex:none;
+}
+.fb-dot.online{background:var(--ok)}
+.fb-dot.connecting{background:#d97706}
+.fb-dot.error,.fb-dot.offline{background:var(--bad)}
+
+h1{font-size:34px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mut);margin:0 0 18px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.cd{background:var(--cd);border-radius:20px;padding:18px}
+.cd.dk{background:var(--ink);color:var(--inv)}
+.cd+.cd{margin-top:12px}
+.dk small{color:#9a9a93}
+small,.mut{color:var(--mut)}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px;align-items:center}
+.tabs .pill{border:1px solid var(--ln)}
+.tabs .pill.on{border-color:var(--ink)}
+.search{
+  border:1px solid var(--ln);
+  background:var(--cd);
+  border-radius:99px;
+  padding:8px 14px;
+  min-width:200px;
+}
+
+.tag{
+  font-size:11px;
+  border:1px solid var(--ln);
+  border-radius:99px;
+  padding:2px 9px;
+  color:var(--mut);
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+.tag.bad{color:var(--bad);border-color:var(--bad)}
+.tag.ok{color:var(--ok);border-color:var(--ok)}
+.tag.solid{background:var(--ink);color:var(--inv);border-color:var(--ink)}
+
+.av{
+  font-size:10px;
+  font-weight:700;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:var(--ink);
+  color:var(--inv);
+  display:inline-grid;
+  place-items:center;
+  flex:none;
+}
+
+.empty{text-align:center;padding:42px 16px}
+.empty p{color:var(--mut);margin:6px 0 18px;max-width:480px;margin-left:auto;margin-right:auto}
+
+/* Month + Week Master Timeline */
+.tl-wrap{
+  position:relative;
+  overflow-x:auto;
+  border:1px solid var(--ln);
+  border-radius:14px;
+  background:var(--bg);
+}
+.tl-inner{
+  position:relative;
+  min-width:max-content;
+}
+.tl-hdr{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:var(--cd);
+  border-bottom:1px solid var(--ln);
+}
+.tl-hrow{display:flex}
+.tl-corner{
+  position:sticky;
+  left:0;
+  z-index:12;
+  width:190px;
+  min-width:190px;
+  background:var(--cd);
+  border-right:1px solid var(--ln);
+  padding:6px 12px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--mut);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.tl-mcell{
+  border-right:1px solid var(--ln);
+  border-bottom:1px solid var(--ln);
+  text-align:center;
+  font-weight:700;
+  font-size:12.5px;
+  padding:7px 4px;
+  cursor:pointer;
+  user-select:none;
+}
+.tl-mcell:hover,.tl-mcell.on{background:var(--ink);color:var(--inv)}
+.tl-wcell{
+  border-right:1px dashed var(--ln);
+  text-align:center;
+  padding:4px 2px;
+  cursor:pointer;
+  user-select:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  line-height:1.15;
+}
+.tl-wcell b{font-size:11px;font-weight:600;color:var(--ink)}
+.tl-wcell span{font-size:9.5px;color:var(--mut);margin-top:1px}
+.tl-wcell:hover,.tl-wcell.on{background:var(--ink)}
+.tl-wcell:hover b,.tl-wcell:hover span,.tl-wcell.on b,.tl-wcell.on span{color:var(--inv)}
+.tl-wcell.mend{border-right:1px solid var(--ln)}
+.tl-wcell.cur{background:rgba(128,128,128,.14)}
+.tl-wcell.cur b{text-decoration:underline}
+
+/* Swimlane Rows */
+.lane{
+  display:flex;
+  border-bottom:1px solid var(--ln);
+  position:relative;
+}
+.lane:last-child{border-bottom:0}
+.lane-lbl{
+  position:sticky;
+  left:0;
+  z-index:8;
+  width:190px;
+  min-width:190px;
+  background:var(--cd);
+  border-right:1px solid var(--ln);
+  padding:10px 12px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+}
+.lane-lbl b{
+  font-size:12.5px;
+  line-height:1.25;
+  word-break:break-word;
+}
+.lane-lbl button{
+  align-self:flex-start;
+  border:1px solid var(--ln);
+  background:none;
+  border-radius:99px;
+  padding:2px 9px;
+  font-size:11px;
+  color:var(--mut);
+  margin-top:2px;
+}
+.lane-lbl button:hover{border-color:var(--ink);color:var(--ink)}
+.lane-track{
+  position:relative;
+  flex:1;
+}
+.vgrid{
+  position:absolute;
+  inset:0;
+  display:flex;
+  pointer-events:none;
+}
+.vcol{
+  height:100%;
+  border-right:1px dashed var(--ln);
+  opacity:.55;
+}
+.vcol.mend{border-right:1px solid var(--ln);opacity:.9}
+.vcol.cur{background:var(--ink);opacity:.04}
+
+/* Vertical Holiday / Special Period Band */
+.hband{
+  position:absolute;
+  top:0;
+  bottom:0;
+  z-index:2;
+  pointer-events:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-left:1px solid var(--ln);
+  border-right:1px solid var(--ln);
+}
+.hband span{
+  writing-mode:vertical-rl;
+  text-orientation:upright;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  white-space:nowrap;
+  padding:4px 0;
+}
+.hb-amber{background:rgba(234,179,8,.24);color:var(--ink)}
+.hb-red{background:rgba(179,38,30,.24);color:var(--ink)}
+.hb-slate{background:rgba(120,120,116,.18);color:var(--ink)}
+
+/* Task Bars on Timeline */
+.bar{
+  position:absolute;
+  z-index:4;
+  border-radius:11px;
+  padding:5px 10px;
+  cursor:grab;
+  user-select:none;
+  border:1px solid rgba(0,0,0,.18);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  overflow:hidden;
+  transition:box-shadow .15s;
+}
+.bar:hover{z-index:7;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.bar.drag{opacity:.85;cursor:grabbing;z-index:15}
+.bar-t{
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.bar-d{
+  font-size:10.5px;
+  opacity:.84;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:1px;
+}
+.rz{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:7px;
+  cursor:ew-resize;
+}
+.rz.l{left:0}.rz.r{right:0}
+
+/* Muted Harmonious Bar Colors */
+.c-sage{background:#c5dec0;color:#142611;border-color:#8fb388}
+.c-plum{background:#dec2dc;color:#291127;border-color:#b38cb0}
+.c-amber{background:#efe59c;color:#2b2605;border-color:#c4b762}
+.c-sky{background:#bfd8ec;color:#0e2436;border-color:#84acc9}
+.c-ink{background:var(--ink);color:var(--inv);border-color:var(--ink)}
+
+:root[data-theme="dark"] .c-sage{background:#2d4729;color:#e4f2e1;border-color:#56824f}
+:root[data-theme="dark"] .c-plum{background:#472b45;color:#f3e3f2;border-color:#855682}
+:root[data-theme="dark"] .c-amber{background:#4d4517;color:#faf4c8;border-color:#8c7f32}
+:root[data-theme="dark"] .c-sky{background:#223c52;color:#dfeefc;border-color:#4b799e}
+
+.bar.st-b{border:1.5px dashed var(--bad)!important}
+
+.dep-svg{
+  position:absolute;
+  top:0;
+  left:190px;
+  pointer-events:none;
+  z-index:5;
+}
+
+/* Detail Cards */
+.dgrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+.dcard{
+  background:var(--bg);
+  border:1px solid var(--ln);
+  border-radius:16px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.dcard:hover{border-color:var(--ink)}
+.dcard-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.dcard-hd b{font-size:15px;cursor:pointer;line-height:1.3}
+.dcard-hd b:hover{text-decoration:underline}
+.dcard-desc{
+  font-size:13px;
+  background:var(--cd);
+  padding:8px 10px;
+  border-radius:10px;
+  white-space:pre-line;
+}
+.chk-list{display:flex;flex-direction:column;gap:4px}
+.chk{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  font-size:13px;
+  padding:3px 4px;
+  border-radius:8px;
+}
+.chk:hover{background:var(--cd)}
+.chk input{margin-top:3px;width:15px;height:15px;accent-color:var(--ink);cursor:pointer;flex:none}
+.chk.done span{text-decoration:line-through;color:var(--mut)}
+
+/* Team & Member Cards */
+.tgrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:12px;
+}
+.mchip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--bg);
+  border:1px solid var(--ln);
+  border-radius:99px;
+  padding:4px 10px 4px 5px;
+  font-size:13px;
+}
+.mchip button{
+  border:0;
+  background:none;
+  color:var(--mut);
+  padding:0 2px;
+  font-size:14px;
+  line-height:1;
+}
+.mchip button:hover{color:var(--bad)}
+
+/* Clickable Member Selector Pills inside Modal */
+.mpick{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--ln);
+  background:var(--bg);
+  border-radius:99px;
+  padding:5px 12px 5px 6px;
+  font-size:12.5px;
+  cursor:pointer;
+  user-select:none;
+}
+.mpick.on{
+  background:var(--ink);
+  color:var(--inv);
+  border-color:var(--ink);
+}
+.mpick.on .av{
+  background:var(--inv);
+  color:var(--ink);
+}
+
+/* Kanban Board */
+.kb{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.kc{
+  background:var(--bg);
+  border-radius:14px;
+  padding:12px;
+  margin-top:8px;
+  cursor:pointer;
+  display:flex;
+  gap:8px;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+.kc:hover{outline:1px solid var(--ink)}
+.kc button{border:1px solid var(--ln);background:none;border-radius:99px;width:28px;height:28px;flex:none}
+
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--ln)}
+.row:first-of-type{border-top:0}
+
+/* Modal & Toast */
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;z-index:20;padding:12px}
+#md{width:min(560px,100%);background:var(--cd);border-radius:20px;padding:20px;max-height:92vh;overflow:auto}
+#md label{display:block;margin-top:11px;color:var(--mut);font-size:12px}
+#md input,#md select,#md textarea{
+  width:100%;
+  margin-top:4px;
+  border:1px solid var(--ln);
+  background:var(--bg);
+  border-radius:12px;
+  padding:9px 12px;
+}
+#md .cl{display:flex;gap:6px;align-items:center;margin-top:6px}
+#md .cl input[type=checkbox]{width:18px;height:18px;margin:0;flex:none}
+#md .cl input{margin:0}
+#md .chk-opt{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:7px;
+  color:var(--ink);
+  font-size:13px;
+  cursor:pointer;
+}
+#md .chk-opt input{
+  width:16px;
+  height:16px;
+  margin:0;
+  accent-color:var(--ink);
+}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+
+.wk-box{
+  background:var(--bg);
+  border:1px solid var(--ln);
+  border-radius:14px;
+  padding:10px 12px;
+  margin-top:4px;
+}
+.wk-box small{display:block;margin-bottom:4px;font-weight:600;color:var(--ink)}
+
+#tip{
+  position:fixed;
+  z-index:30;
+  pointer-events:none;
+  background:var(--ink);
+  color:var(--inv);
+  border-radius:12px;
+  padding:9px 12px;
+  max-width:310px;
+  font-size:12px;
+  display:none;
+  line-height:1.4;
+}
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  background:var(--ink);
+  color:var(--inv);
+  border-radius:99px;
+  padding:8px 8px 8px 20px;
+  display:none;
+  gap:14px;
+  align-items:center;
+  z-index:25;
+  max-width:92vw;
+}
+#toast button{background:var(--inv);color:var(--ink);border:0;border-radius:99px;padding:6px 14px}
+
+/* Print / PDF Sheet */
+#print-sheet{display:none}
+@media print{
+  @page{margin:12mm}
+  body{
+    background:#fff!important;
+    color:#111!important;
+    padding:0!important;
+    max-width:none!important;
+  }
+  .nav,#app,#ov,#toast,#tip{display:none!important}
+  #print-sheet{
+    display:block!important;
+    background:#fff!important;
+    color:#111!important;
+    font:11pt/1.4 "Inter",system-ui,sans-serif;
+  }
+  #print-sheet table{page-break-inside:auto}
+  #print-sheet tr{page-break-inside:avoid;page-break-after:auto}
+  #print-sheet thead{display:table-header-group}
+}
+.vcol{pointer-events:auto;cursor:pointer;position:relative}
+.vcol:hover{opacity:1;background:rgba(128,128,128,.14)}
+.vcol:hover::after{content:"+";position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);font-size:22px;font-weight:300}
+/* Kalender pemilih tanggal */
+.cal-top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+@media(max-width:560px){.cal-top{grid-template-columns:1fr}}
+.cal-sel{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--ink);font:inherit}
+.cal-sel small{display:block;font-weight:600;color:var(--mut);margin-bottom:2px}
+.cal-sel b{font-size:13px;font-weight:600;display:block}
+.cal-sel span{font-size:12px;color:var(--mut)}
+.cal-sel.on{border-color:#4cc2ff;box-shadow:0 0 0 1px #4cc2ff}
+.cal-box{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:10px;margin-top:8px}
+.cal-nav{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.cal-nav b{flex:1;font-size:14px;font-weight:600}
+.cal-nav button{border:1px solid var(--ln);background:none;border-radius:8px;min-width:32px;height:28px;color:var(--ink);cursor:pointer;font:inherit;font-size:11px}
+.cal-nav button:hover{border-color:var(--ink)}
+.cal-nav button.t{padding:0 10px;font-size:12px}
+.cal-g{display:grid;grid-template-columns:34px repeat(7,1fr);gap:2px 0}
+.cal-h{font-size:11px;font-weight:600;text-align:center;color:var(--mut);padding:4px 0}
+.cal-w{font-size:10px;color:var(--mut);display:grid;place-items:center;height:34px}
+.cal-d{height:34px;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;display:grid;place-items:center;cursor:pointer;padding:0}
+.cal-d span{width:30px;height:30px;display:grid;place-items:center;border-radius:50%}
+.cal-d:hover span{background:rgba(128,128,128,.28)}
+.cal-d.o{color:var(--mut)}
+.cal-d.today span{background:#4cc2ff;color:#001018;font-weight:700}
+.cal-w.rb,.cal-d.rb{background:rgba(76,194,255,.13)}
+.cal-w.re,.cal-d.re{background:rgba(76,194,255,.26)}
+.cal-w.rb{border-radius:8px 0 0 8px}
+.cal-d.rb.wr{border-radius:0 8px 8px 0}
+.cal-d.re span{font-weight:700}
+.cal-prev{font-size:12px;color:var(--ok);margin-top:8px;font-weight:500}
+</style>
+<style id="print-orient"></style>
+</head>
+<body>
+
+<div class="nav">
+  <img src="data:image/png;base64,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" alt="POLYTRON" class="nav-logo" onclick="page='planner';render()" title="POLYTRON — Planner EV">
+  <button data-p="planner" class="on">Bulan &amp; Minggu</button>
+  <button data-p="mingguan">Detail Minggu</button>
+  <button data-p="bulanan">Detail Bulan</button>
+  <button data-p="status">Status</button>
+  <button data-p="tim">Tim &amp; Anggota</button>
+  <button data-p="atur">Kategori &amp; Libur</button>
+  <span class="sp"></span>
+  <button id="fb-btn" class="fb-pill" onclick="openFirebaseModal()" title="Atur koneksi & sinkronisasi Firebase Realtime Database">
+    <span class="fb-dot" id="fb-dot"></span>
+    <span id="fb-lbl">Firebase: Lokal</span>
+  </button>
+  <button class="on" onclick="openReportModal()" title="Ekspor laporan ke Word atau PDF">Ekspor Word / PDF</button>
+  <button onclick="expData()" title="Unduh cadangan data JSON">Cadangkan</button>
+  <button onclick="$('#imp').click()" title="Pulihkan dari file cadangan JSON">Pulihkan</button>
+  <button id="th" aria-label="Ganti tema">◐</button>
+</div>
+<input type="file" id="imp" accept=".json,application/json" style="display:none">
+
+<div id="app"></div>
+<div id="print-sheet"></div>
+<div id="tip"></div>
+<div id="ov"><div id="md"></div></div>
+<div id="toast"><span id="tt"></span><button id="tu">Urungkan</button></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+// =========================================================================
+// KONFIGURASI FIREBASE BAWAAN (ISI DI SINI AGAR OTOMATIS TERHUBUNG)
+// Tempelkan link databaseURL dan konfigurasi project Firebase Anda di bawah:
+// =========================================================================
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "https://planner-polytron-4w-default-rtdb.asia-southeast1.firebasedatabase.app/", // <-- TEMPEL LINK FIREBASE DI SINI (contoh: "https://project-anda-default-rtdb.asia-southeast1.firebasedatabase.app")
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+const DEFAULT_FIREBASE_PATH = "planner-ev/master";
+// =========================================================================
+
+const $ = s => document.querySelector(s);
+const KEY = "planner-ev-master-v3";
+const FB_CFG_KEY = "planner-ev-firebase-cfg-v1";
+const MON = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const MON_F = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const ST = { p: "Rencana", d: "Dikerjakan", b: "Terblokir", x: "Selesai" };
+const BAR_COLORS = {
+  sage:  "Hijau Sage",
+  plum:  "Ungu Plum",
+  amber: "Kuning Amber",
+  sky:   "Biru Langit",
+  ink:   "Hitam / Kontras"
+};
+const HOL_TONES = {
+  amber: "Kuning (Libur / Cuti)",
+  red:   "Merah (Libur Besar / Tutup)",
+  slate: "Abu-abu (Periode Khusus)"
+};
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const ini = s => String(s || "").trim().split(/\s+/).map(w => w[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+
+// Date & Week Helpers (Monday-anchored)
+function parseYMD(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function fmtYMD(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function getMonday(d) {
+  const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = (dt.getDay() + 6) % 7;
+  dt.setDate(dt.getDate() - day);
+  return dt;
+}
+function addWeeks(ymdStr, n) {
+  const d = parseYMD(ymdStr);
+  d.setDate(d.getDate() + n * 7);
+  return fmtYMD(d);
+}
+function diffWeeks(a, b) {
+  return Math.round((parseYMD(b) - parseYMD(a)) / (7 * 86400000));
+}
+function isoWeekNum(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = dt.getUTCDay() || 7;
+  dt.setUTCDate(dt.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+  return Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
+}
+
+function wkMeta(monYmd) {
+  const mon = parseYMD(monYmd);
+  const thu = new Date(mon); thu.setDate(mon.getDate() + 3);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  const wNum = isoWeekNum(mon);
+  const mIdx = thu.getMonth();
+  const yr = thu.getFullYear();
+  const mKey = `${yr}-${String(mIdx + 1).padStart(2, "0")}`;
+  const mShort = `${MON[mIdx]} ${yr}`;
+  const mFull = `${MON_F[mIdx]} ${yr}`;
+
+  const firstOfMonth = new Date(yr, mIdx, 1);
+  let firstMon = getMonday(firstOfMonth);
+  const firstThu = new Date(firstMon); firstThu.setDate(firstMon.getDate() + 3);
+  if (firstThu.getMonth() !== mIdx) {
+    firstMon.setDate(firstMon.getDate() + 7);
+  }
+  const wkOfMonth = Math.max(1, Math.round((mon - firstMon) / (7 * 86400000)) + 1);
+
+  const rangeShort = mon.getMonth() === sun.getMonth()
+    ? `${mon.getDate()}–${sun.getDate()} ${MON[mon.getMonth()]}`
+    : `${mon.getDate()} ${MON[mon.getMonth()]} – ${sun.getDate()} ${MON[sun.getMonth()]}`;
+  const startDayLabel = `${mon.getDate()} ${MON[mon.getMonth()]}`;
+
+  return {
+    ymd: monYmd,
+    wNum,
+    wCode: `W${wNum}`,
+    wkOfMonth,
+    mWeekShort: `Mg ${wkOfMonth}`,
+    mWeekLabel: `Minggu ${wkOfMonth}`,
+    mKey,
+    mShort,
+    mFull,
+    rangeShort,
+    startDayLabel
+  };
+}
+
+const CUR_MON = fmtYMD(getMonday(new Date()));
+
+function defaultTeams() {
+  return [
+    { id: "ES", name: "Energy Storage EV 4W", short: "Energy Storage", members: [] },
+    { id: "HV", name: "HVAC EV 4W", short: "HVAC", members: [] },
+    { id: "KD", name: "4W Knock Down", short: "Knock Down", members: [] },
+    { id: "VC", name: "Vehicle Control Unit EV 4W", short: "VCU", members: [] }
+  ];
+}
+
+function emptyState() {
+  return {
+    v: 1,
+    startWk: addWeeks(CUR_MON, -2),
+    weeksCount: 52,
+    teams: defaultTeams(),
+    cats: [],
+    holidays: [],
+    tasks: []
+  };
+}
+
+const toArr = v => Array.isArray(v) ? v : (v && typeof v === "object" ? Object.values(v) : []);
+
+function normalizeState(d) {
+  if (!d || typeof d !== "object") return emptyState();
+  const rawTeams = toArr(d.teams);
+  const teams = (rawTeams.length ? rawTeams : defaultTeams()).map(tm => ({
+    id: tm.id || uid(),
+    name: tm.name || "Tim",
+    short: tm.short || tm.name || "Tim",
+    members: toArr(tm.members).filter(Boolean)
+  }));
+  const cats = toArr(d.cats).map(c => ({
+    id: c.id || ("cat_" + uid()),
+    name: c.name || "Kategori"
+  }));
+  const holidays = toArr(d.holidays).map(h => ({
+    id: h.id || ("hol_" + uid()),
+    title: h.title || "Libur",
+    startWk: h.startWk || CUR_MON,
+    endWk: h.endWk || h.startWk || CUR_MON,
+    tone: h.tone || "amber"
+  }));
+  const tasks = toArr(d.tasks).map(t => ({
+    id: t.id || ("t_" + uid()),
+    title: t.title || "Tugas",
+    team: t.team || (teams[0] && teams[0].id) || "VC",
+    pics: toArr(t.pics).filter(Boolean),
+    cat: t.cat || "",
+    st: ["p", "d", "b", "x"].includes(t.st) ? t.st : "p",
+    startWk: t.startWk || CUR_MON,
+    endWk: t.endWk || t.startWk || CUR_MON,
+    desc: t.desc || "",
+    items: toArr(t.items).map(it => ({ t: it.t || "", x: !!it.x })),
+    out: t.out || "",
+    color: t.color || "sage",
+    dep: t.dep || "",
+    bl: t.bl || ""
+  }));
+  return {
+    v: 1,
+    startWk: d.startWk || addWeeks(CUR_MON, -2),
+    weeksCount: Number(d.weeksCount) || 52,
+    teams,
+    cats,
+    holidays,
+    tasks
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return emptyState();
+    const d = JSON.parse(raw);
+    if (d && typeof d === "object") {
+      return normalizeState(d);
+    }
+  } catch (e) {}
+  return emptyState();
+}
+
+let S = load();
+let page = "planner";
+let fTeam = "*";
+let fMember = "*";
+let fCat = "*";
+let fSt = "*";
+let qText = "";
+let focusMonth = "";
+let focusWeek = "";
+let onlyActivePeriods = true;
+let CL = [];
+let modalPics = [];
+
+// Firebase Realtime Database State
+let fbApp = null;
+let fbDb = null;
+let fbRef = null;
+let fbConnRef = null;
+let fbStatus = "off"; // off | connecting | online | offline | error
+let fbErrorMsg = "";
+let fbLastHash = "";
+let fbWriteTimer = null;
+
+function getSavedFbSettings() {
+  try {
+    const raw = localStorage.getItem(FB_CFG_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.disabled) return null;
+      if (parsed && parsed.config && parsed.config.databaseURL) {
+        return {
+          config: parsed.config,
+          dbPath: (parsed.dbPath || DEFAULT_FIREBASE_PATH).replace(/^\/+|\/+$/g, "") || DEFAULT_FIREBASE_PATH
+        };
+      }
+    }
+  } catch (e) {}
+
+  if (DEFAULT_FIREBASE_CONFIG && DEFAULT_FIREBASE_CONFIG.databaseURL && DEFAULT_FIREBASE_CONFIG.databaseURL.trim().startsWith("https://")) {
+    const cleanCfg = {};
+    Object.entries(DEFAULT_FIREBASE_CONFIG).forEach(([k, v]) => {
+      if (v && String(v).trim()) cleanCfg[k] = String(v).trim();
+    });
+    cleanCfg.databaseURL = cleanCfg.databaseURL.replace(/\/+$/, "");
+    return {
+      config: cleanCfg,
+      dbPath: (DEFAULT_FIREBASE_PATH || "planner-ev/master").replace(/^\/+|\/+$/g, "") || "planner-ev/master",
+      fromHtml: true
+    };
+  }
+  return null;
+}
+
+function updateFbBadge() {
+  const dot = $("#fb-dot");
+  const lbl = $("#fb-lbl");
+  if (!dot || !lbl) return;
+  dot.className = "fb-dot " + (fbStatus === "off" ? "" : fbStatus);
+  const map = {
+    off: "Firebase: Lokal",
+    connecting: "Firebase: Menghubungkan...",
+    online: "Firebase: Tersinkron",
+    offline: "Firebase: Offline",
+    error: "Firebase: Error"
+  };
+  lbl.textContent = map[fbStatus] || "Firebase: Lokal";
+}
+
+function pushStateToFirebase(immediate = false) {
+  if (!fbRef) return;
+  const clean = JSON.parse(JSON.stringify(normalizeState(S)));
+  const hash = JSON.stringify(clean);
+  fbLastHash = hash;
+
+  const doWrite = () => {
+    if (!fbRef) return;
+    fbRef.set(clean).then(() => {
+      if (fbStatus === "error") {
+        fbStatus = "online";
+        fbErrorMsg = "";
+        updateFbBadge();
+      }
+    }).catch(err => {
+      fbStatus = "error";
+      fbErrorMsg = err && err.message ? err.message : String(err);
+      updateFbBadge();
+      toast("Gagal simpan ke Firebase: " + fbErrorMsg);
+    });
+  };
+
+  clearTimeout(fbWriteTimer);
+  if (immediate) doWrite();
+  else fbWriteTimer = setTimeout(doWrite, 150);
+}
+
+function persist() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(S));
+  } catch (e) {
+    toast("Tidak bisa menyimpan di browser ini. Pakai Cadangkan untuk menyimpan ke file.");
+  }
+  pushStateToFirebase(false);
+}
+
+function detachFirebaseListeners() {
+  clearTimeout(fbWriteTimer);
+  if (fbRef) {
+    try { fbRef.off(); } catch (e) {}
+    fbRef = null;
+  }
+  if (fbConnRef) {
+    try { fbConnRef.off(); } catch (e) {}
+    fbConnRef = null;
+  }
+}
+
+async function initFirebaseSync(settings, isManualConnect = false) {
+  if (!settings || !settings.config || !settings.config.databaseURL) {
+    fbStatus = "off";
+    updateFbBadge();
+    return false;
+  }
+  if (typeof firebase === "undefined") {
+    fbStatus = "error";
+    fbErrorMsg = "SDK Firebase gagal dimuat (periksa koneksi internet).";
+    updateFbBadge();
+    if (isManualConnect) toast(fbErrorMsg);
+    return false;
+  }
+
+  detachFirebaseListeners();
+  fbStatus = "connecting";
+  fbErrorMsg = "";
+  updateFbBadge();
+
+  try {
+    const appName = "planner-ev-app-" + (settings.config.projectId || "default");
+    const existing = firebase.apps.find(a => a.name === appName);
+    if (existing) {
+      await existing.delete();
+    }
+    fbApp = firebase.initializeApp(settings.config, appName);
+    fbDb = firebase.database(fbApp);
+
+    const cleanPath = (settings.dbPath || "planner-ev/master").replace(/^\/+|\/+$/g, "") || "planner-ev/master";
+    fbRef = fbDb.ref(cleanPath);
+    fbConnRef = fbDb.ref(".info/connected");
+
+    fbConnRef.on("value", snap => {
+      if (snap.val() === true) {
+        if (fbStatus !== "error") fbStatus = "online";
+      } else if (fbStatus === "online") {
+        fbStatus = "offline";
+      }
+      updateFbBadge();
+    });
+
+    // Initial handshake to avoid accidental overwrite
+    const initSnap = await fbRef.once("value");
+    const remoteVal = initSnap.val();
+    const localHasData = S.tasks.length > 0 || S.cats.length > 0 || allMembersList().length > 0;
+    const remoteNorm = remoteVal ? normalizeState(remoteVal) : null;
+    const remoteHasData = remoteNorm && (remoteNorm.tasks.length > 0 || remoteNorm.cats.length > 0 || remoteNorm.teams.some(tm => (tm.members || []).length > 0));
+
+    if (!remoteHasData && localHasData) {
+      // Remote empty, upload local data
+      pushStateToFirebase(true);
+      if (isManualConnect) toast("Terhubung! Data lokal berhasil diunggah ke Firebase.");
+    } else if (remoteHasData && !localHasData) {
+      // Local empty, pull remote data
+      S = remoteNorm;
+      fbLastHash = JSON.stringify(S);
+      localStorage.setItem(KEY, JSON.stringify(S));
+      render();
+      if (isManualConnect) toast("Terhubung! Data dimuat dari Firebase.");
+    } else if (remoteHasData && localHasData) {
+      const localHash = JSON.stringify(normalizeState(S));
+      const remoteHash = JSON.stringify(remoteNorm);
+      if (localHash !== remoteHash && isManualConnect) {
+        const useRemote = confirm(
+          `Data ditemukan di Firebase (${remoteNorm.tasks.length} tugas) dan di browser ini (${S.tasks.length} tugas).\n\n` +
+          `• Klik OK untuk memakai data dari Firebase.\n` +
+          `• Klik Batal untuk mengirim data browser ini ke Firebase.`
+        );
+        if (useRemote) {
+          S = remoteNorm;
+          fbLastHash = remoteHash;
+          localStorage.setItem(KEY, JSON.stringify(S));
+          render();
+        } else {
+          pushStateToFirebase(true);
+        }
+      } else {
+        S = remoteNorm;
+        fbLastHash = remoteHash;
+        localStorage.setItem(KEY, JSON.stringify(S));
+        render();
+      }
+      if (isManualConnect) toast("Firebase Realtime Database tersinkron.");
+    } else {
+      // Both empty: seed default state to Firebase
+      pushStateToFirebase(true);
+      if (isManualConnect) toast("Firebase Realtime Database terhubung.");
+    }
+
+    fbStatus = "online";
+    updateFbBadge();
+
+    // Real-time listener for updates from other devices/teammates
+    fbRef.on("value", snap => {
+      const val = snap.val();
+      if (!val) return;
+      const norm = normalizeState(val);
+      const hash = JSON.stringify(norm);
+      if (hash === fbLastHash) return;
+      fbLastHash = hash;
+      S = norm;
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+      if ($("#ov").style.display !== "grid") {
+        render();
+      }
+      toast("Data diperbarui dari Firebase");
+    }, err => {
+      fbStatus = "error";
+      fbErrorMsg = err && err.message ? err.message : String(err);
+      updateFbBadge();
+    });
+
+    return true;
+  } catch (err) {
+    fbStatus = "error";
+    fbErrorMsg = err && err.message ? err.message : String(err);
+    updateFbBadge();
+    if (isManualConnect) toast("Koneksi Firebase gagal: " + fbErrorMsg);
+    return false;
+  }
+}
+
+function parseFirebaseSnippet(rawText) {
+  const txt = String(rawText || "").trim();
+  if (!txt) return null;
+  const keys = ["apiKey", "authDomain", "databaseURL", "projectId", "storageBucket", "messagingSenderId", "appId", "measurementId"];
+  const found = {};
+  keys.forEach(k => {
+    const re = new RegExp(`["']?${k}["']?\s*:\s*["']([^"']+)["']`);
+    const m = txt.match(re);
+    if (m && m[1]) found[k] = m[1].trim();
+  });
+  return Object.keys(found).length ? found : null;
+}
+
+function fillFbFieldsFromSnippet() {
+  const raw = $("#fb_snippet").value;
+  const parsed = parseFirebaseSnippet(raw);
+  if (!parsed) {
+    toast("Tidak menemukan konfigurasi Firebase pada teks tersebut");
+    return;
+  }
+  if (parsed.databaseURL) $("#fb_dburl").value = parsed.databaseURL;
+  if (parsed.apiKey) $("#fb_apikey").value = parsed.apiKey;
+  if (parsed.projectId) $("#fb_projid").value = parsed.projectId;
+  if (parsed.authDomain) $("#fb_authdom").value = parsed.authDomain;
+  if (parsed.appId) $("#fb_appid").value = parsed.appId;
+  toast("Konfigurasi berhasil dibaca dari cuplikan kode");
+}
+
+function openFirebaseModal() {
+  const saved = getSavedFbSettings() || { config: {}, dbPath: "planner-ev/master" };
+  const c = saved.config || {};
+  const statusLabel = {
+    off: "Belum terhubung (hanya tersimpan di browser ini)",
+    connecting: "Sedang menghubungkan...",
+    online: "Terhubung & tersinkron real-time",
+    offline: "Terputus sementara (menunggu jaringan)",
+    error: "Gagal terhubung" + (fbErrorMsg ? ` — ${fbErrorMsg}` : "")
+  }[fbStatus];
+
+  $("#md").innerHTML = `
+    <b style="font-size:18px">Database Firebase Realtime</b>
+    <small style="display:block;margin-top:2px">Simpan data planner di cloud agar tersinkron otomatis antar anggota tim &amp; perangkat</small>
+
+    <div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--ln);display:flex;align-items:center;gap:8px">
+      <span class="fb-dot ${fbStatus === "off" ? "" : fbStatus}"></span>
+      <span style="font-size:13px"><b>Status:</b> ${esc(statusLabel)}</span>
+    </div>
+
+    <label>Cara Cepat: Tempel kode <code>firebaseConfig</code> dari Firebase Console</label>
+    <textarea id="fb_snippet" rows="4" placeholder='Tempel const firebaseConfig = { apiKey: "...", databaseURL: "https://...", projectId: "...", appId: "..." }; di sini lalu klik Baca Konfigurasi'></textarea>
+    <div style="margin-top:6px">
+      <button type="button" class="sec" style="padding:6px 12px;font-size:12px" onclick="fillFbFieldsFromSnippet()">Baca Konfigurasi dari Teks</button>
+    </div>
+
+    <label>Database URL (Wajib — dari menu Build &gt; Realtime Database)</label>
+    <input id="fb_dburl" value="${esc(c.databaseURL || "")}" placeholder="https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app">
+
+    <div class="two">
+      <label>Project ID
+        <input id="fb_projid" value="${esc(c.projectId || "")}" placeholder="nama-project-ev">
+      </label>
+      <label>Path Penyimpanan di Database
+        <input id="fb_path" value="${esc(saved.dbPath || "planner-ev/master")}" placeholder="planner-ev/master">
+      </label>
+    </div>
+
+    <div class="two">
+      <label>API Key
+        <input id="fb_apikey" value="${esc(c.apiKey || "")}" placeholder="AIzaSy...">
+      </label>
+      <label>App ID
+        <input id="fb_appid" value="${esc(c.appId || "")}" placeholder="1:123456789:web:abcdef">
+      </label>
+    </div>
+    <input type="hidden" id="fb_authdom" value="${esc(c.authDomain || "")}">
+
+    <details style="margin-top:12px;font-size:12.5px;color:var(--mut)">
+      <summary style="cursor:pointer;color:var(--ink);font-weight:600">Panduan singkat setup di Firebase Console</summary>
+      <ol style="margin:6px 0 0 18px;padding:0;line-height:1.5">
+        <li>Buka <b>console.firebase.google.com</b> → buat/pilih project.</li>
+        <li>Masuk ke <b>Build → Realtime Database → Create Database</b>, lalu salin URL database-nya (<code>https://...firebasedatabase.app</code>).</li>
+        <li>Pada tab <b>Rules</b> di Realtime Database, pastikan izin baca/tulis aktif untuk path planner (atau mode test).</li>
+        <li>Buka <b>Project Settings → General → Your apps (Web)</b>, salin <code>firebaseConfig</code> dan tempel di atas.</li>
+      </ol>
+    </details>
+
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button type="button" class="pri" onclick="saveAndConnectFirebase()">Hubungkan &amp; Simpan</button>
+      ${fbRef ? `<button type="button" class="sec" onclick="forcePushFirebase()">Unggah Ulang Data Lokal</button>` : ""}
+      ${getSavedFbSettings() ? `<button type="button" class="sec" style="color:var(--bad)" onclick="disconnectFirebase()">Putuskan</button>` : ""}
+      <span style="flex:1"></span>
+      <button type="button" class="sec" onclick="closeModal()">Tutup</button>
+    </div>`;
+
+  $("#ov").style.display = "grid";
+}
+
+async function saveAndConnectFirebase() {
+  const snippetParsed = parseFirebaseSnippet($("#fb_snippet").value) || {};
+  const databaseURL = ($("#fb_dburl").value.trim() || snippetParsed.databaseURL || "").replace(/\/+$/, "");
+  const apiKey = $("#fb_apikey").value.trim() || snippetParsed.apiKey || "";
+  const projectId = $("#fb_projid").value.trim() || snippetParsed.projectId || "";
+  const appId = $("#fb_appid").value.trim() || snippetParsed.appId || "";
+  const authDomain = $("#fb_authdom").value.trim() || snippetParsed.authDomain || (projectId ? `${projectId}.firebaseapp.com` : "");
+  const dbPath = ($("#fb_path").value.trim() || "planner-ev/master").replace(/^\/+|\/+$/g, "") || "planner-ev/master";
+
+  if (!databaseURL || !databaseURL.startsWith("https://")) {
+    toast("Isi Database URL Firebase yang valid (diawali https://)");
+    return;
+  }
+
+  const settings = {
+    config: {
+      apiKey,
+      authDomain,
+      databaseURL,
+      projectId,
+      appId
+    },
+    dbPath
+  };
+
+  try {
+    localStorage.setItem(FB_CFG_KEY, JSON.stringify(settings));
+  } catch (e) {}
+
+  closeModal();
+  await initFirebaseSync(settings, true);
+  if (page === "atur") render();
+}
+
+function forcePushFirebase() {
+  if (!fbRef) {
+    toast("Firebase belum terhubung");
+    return;
+  }
+  pushStateToFirebase(true);
+  toast("Seluruh data lokal dikirim ke Firebase");
+}
+
+function disconnectFirebase() {
+  if (!confirm("Putuskan koneksi Firebase dari browser ini? Data tetap aman di penyimpanan lokal browser.")) return;
+  detachFirebaseListeners();
+  try {
+    if (DEFAULT_FIREBASE_CONFIG && DEFAULT_FIREBASE_CONFIG.databaseURL) {
+      localStorage.setItem(FB_CFG_KEY, JSON.stringify({ disabled: true }));
+    } else {
+      localStorage.removeItem(FB_CFG_KEY);
+    }
+  } catch (e) {}
+  fbStatus = "off";
+  fbErrorMsg = "";
+  fbLastHash = "";
+  updateFbBadge();
+  closeModal();
+  if (page === "atur") render();
+  toast("Koneksi Firebase diputuskan");
+}
+
+function toast(msg, undo) {
+  const e = $("#toast");
+  $("#tt").textContent = msg;
+  const b = $("#tu");
+  b.style.display = undo ? "" : "none";
+  b.onclick = () => { e.style.display = "none"; if (undo) undo(); };
+  e.style.display = "flex";
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => e.style.display = "none", 6000);
+}
+
+const byId = id => S.tasks.find(t => t.id === id);
+const teamById = id => S.teams.find(tm => tm.id === id) || { id: "", name: "Tanpa Tim", short: "Umum", members: [] };
+const catName = id => (S.cats.find(c => c.id === id) || {}).name || "Umum";
+
+function spanText(sWk, eWk) {
+  const a = wkMeta(sWk), b = wkMeta(eWk);
+  const cnt = Math.max(1, diffWeeks(sWk, eWk) + 1);
+  if (sWk === eWk) {
+    return `${a.mWeekLabel} ${a.mShort} (${a.rangeShort}) · ${a.wCode}`;
+  }
+  return `${a.mWeekShort} ${a.mShort} – ${b.mWeekShort} ${b.mShort} (${cnt} minggu)`;
+}
+
+function buildCols() {
+  const cols = [];
+  for (let i = 0; i < S.weeksCount; i++) {
+    cols.push(wkMeta(addWeeks(S.startWk, i)));
+  }
+  const months = [];
+  cols.forEach((c, idx) => {
+    const last = months[months.length - 1];
+    if (last && last.mKey === c.mKey) {
+      last.span++;
+      last.endIdx = idx;
+    } else {
+      months.push({ mKey: c.mKey, mShort: c.mShort, mFull: c.mFull, startIdx: idx, endIdx: idx, span: 1 });
+    }
+  });
+  return { cols, months };
+}
+
+function allMembersList() {
+  const set = new Set();
+  S.teams.forEach(tm => (tm.members || []).forEach(m => set.add(m)));
+  S.tasks.forEach(t => (t.pics || []).forEach(m => set.add(m)));
+  return [...set];
+}
+
+function visibleTasks() {
+  const q = qText.trim().toLowerCase();
+  return S.tasks.filter(t => {
+    if (fTeam !== "*" && t.team !== fTeam) return false;
+    if (fMember !== "*" && !(t.pics || []).includes(fMember)) return false;
+    if (fCat !== "*" && t.cat !== fCat) return false;
+    if (fSt !== "*" && t.st !== fSt) return false;
+    if (q) {
+      const hay = [
+        t.title,
+        t.desc,
+        t.out,
+        t.bl,
+        teamById(t.team).name,
+        ...(t.pics || []),
+        ...(t.items || []).map(x => x.t)
+      ].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function packRows(tasks) {
+  const sorted = [...tasks].sort((a, b) => a.startWk.localeCompare(b.startWk) || a.endWk.localeCompare(b.endWk));
+  const ends = [];
+  const pos = new Map();
+  sorted.forEach(t => {
+    let r = ends.findIndex(e => e < t.startWk);
+    if (r === -1) { r = ends.length; ends.push(t.endWk); }
+    else ends[r] = t.endWk;
+    pos.set(t.id, r);
+  });
+  return { rows: Math.max(1, ends.length), pos };
+}
+
+function filterBar() {
+  const members = fTeam === "*"
+    ? allMembersList()
+    : (teamById(fTeam).members || []);
+
+  return `
+  <div class="tabs">
+    <button class="pill ${fTeam === "*" ? "on" : ""}" onclick="fTeam='*';fMember='*';render()">Semua tim</button>
+    ${S.teams.map(tm => `<button class="pill ${fTeam === tm.id ? "on" : ""}" onclick="fTeam='${tm.id}';fMember='*';render()">${esc(tm.short || tm.name)}</button>`).join("")}
+    <span style="flex:1"></span>
+    ${members.length ? `
+      <select class="sec" style="padding:7px 12px" onchange="fMember=this.value;render()">
+        <option value="*" ${fMember === "*" ? "selected" : ""}>Semua anggota (${members.length})</option>
+        ${members.map(m => `<option value="${esc(m)}" ${fMember === m ? "selected" : ""}>${esc(m)}</option>`).join("")}
+      </select>` : ""}
+    ${S.cats.length ? `
+      <select class="sec" style="padding:7px 12px" onchange="fCat=this.value;render()">
+        <option value="*" ${fCat === "*" ? "selected" : ""}>Semua kategori</option>
+        ${S.cats.map(c => `<option value="${c.id}" ${fCat === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
+      </select>` : ""}
+    <select class="sec" style="padding:7px 12px" onchange="fSt=this.value;render()">
+      <option value="*" ${fSt === "*" ? "selected" : ""}>Semua status</option>
+      ${Object.entries(ST).map(([k, v]) => `<option value="${k}" ${fSt === k ? "selected" : ""}>${v}</option>`).join("")}
+    </select>
+    <input class="search" type="search" value="${esc(qText)}" placeholder="Cari tugas, nama, detail..." oninput="qText=this.value;render()">
+  </div>`;
+}
+
+// ==========================================
+// TAB 1: PLANNER (BULAN & MINGGU + DETAIL)
+// ==========================================
+function renderPlanner() {
+  const { cols, months } = buildCols();
+  const COL_W = 50;
+  const ROW_H = 50;
+  const PAD = 10;
+  const totalW = cols.length * COL_W;
+  const vis = visibleTasks();
+
+  const lanes = [...S.cats];
+  if (vis.some(t => !t.cat || !S.cats.find(c => c.id === t.cat))) {
+    lanes.push({ id: "", name: "Umum" });
+  }
+
+  let curY = 0;
+  const laneData = lanes.map(ln => {
+    const lt = vis.filter(t => (t.cat || "") === ln.id);
+    const { rows, pos } = packRows(lt);
+    const h = Math.max(68, rows * ROW_H + PAD * 2);
+    const obj = { ln, lt, pos, topY: curY, h };
+    curY += h + 1;
+    return obj;
+  });
+  const bodyH = Math.max(120, curY);
+  const boxes = new Map();
+
+  const lanesHTML = laneData.map(g => {
+    const { ln, lt, pos, topY, h } = g;
+    const hols = S.holidays.map(hl => {
+      const s = diffWeeks(S.startWk, hl.startWk);
+      const e = diffWeeks(S.startWk, hl.endWk);
+      if (e < 0 || s >= cols.length) return "";
+      const c0 = Math.max(0, s), c1 = Math.min(cols.length - 1, e);
+      return `<div class="hband hb-${hl.tone || "amber"}" style="left:${c0 * COL_W}px;width:${(c1 - c0 + 1) * COL_W}px"><span>${esc(hl.title)}</span></div>`;
+    }).join("");
+
+    const bars = lt.map(t => {
+      const s = diffWeeks(S.startWk, t.startWk);
+      const e = diffWeeks(S.startWk, t.endWk);
+      if (e < 0 || s >= cols.length) return "";
+      const c0 = Math.max(0, s), c1 = Math.min(cols.length - 1, e);
+      const left = c0 * COL_W + 2;
+      const width = Math.max(COL_W - 4, (c1 - c0 + 1) * COL_W - 4);
+      const r = pos.get(t.id) || 0;
+      const top = PAD + r * ROW_H + 3;
+      const bh = ROW_H - 6;
+
+      boxes.set(t.id, { x1: left, x2: left + width, y: topY + top + bh / 2 });
+
+      const items = t.items || [];
+      const done = items.filter(x => x.x).length;
+      const tm = teamById(t.team);
+      const picsStr = (t.pics || []).length ? ` · ${(t.pics || []).join(", ")}` : "";
+      const sub = items.length
+        ? `[${tm.short}${picsStr}] ` + items.map(x => (x.x ? "✓ " : "• ") + x.t).join(" · ")
+        : `[${tm.short}${picsStr}] ${t.desc || ""}`;
+
+      return `
+      <div class="bar c-${t.color || "sage"} st-${t.st}"
+           data-id="${t.id}"
+           style="left:${left}px;top:${top}px;width:${width}px;height:${bh}px"
+           onmouseenter="showTip(event,'${t.id}')"
+           onmouseleave="hideTip()">
+        <div class="rz l" data-rz="l"></div>
+        <div class="bar-t">
+          <span>${t.st === "x" ? "✓ " : t.st === "b" ? "! " : ""}${esc(t.title)}</span>
+          ${items.length ? `<small style="opacity:.75">${done}/${items.length}</small>` : ""}
+        </div>
+        <div class="bar-d">${esc(sub)}</div>
+        <div class="rz r" data-rz="r"></div>
+      </div>`;
+    }).join("");
+
+    const vcols = cols.map((c, i) => {
+      const mend = i < cols.length - 1 && cols[i + 1].mKey !== c.mKey;
+      const cur = c.ymd === CUR_MON;
+      return `<div class="vcol ${mend ? "mend" : ""} ${cur ? "cur" : ""}" style="width:${COL_W}px" title="Klik untuk tambah tugas · ${c.mWeekShort} ${c.mShort} (${c.rangeShort})" onclick="cellAdd('${ln.id}','${c.ymd}')"></div>`;
+    }).join("");
+
+    return `
+    <div class="lane" style="height:${h}px">
+      <div class="lane-lbl">
+        <b>${esc(ln.name)}</b>
+        <small>${lt.length} tugas</small>
+        ${ln.id ? `<button onclick="openModal(null,'${ln.id}')">+ Tugas</button>` : ""}
+      </div>
+      <div class="lane-track" style="width:${totalW}px">
+        <div class="vgrid">${vcols}</div>
+        ${hols}
+        ${bars}
+      </div>
+    </div>`;
+  }).join("");
+
+  let arrows = "";
+  vis.forEach(t => {
+    if (!t.dep) return;
+    const a = boxes.get(t.dep), b = boxes.get(t.id);
+    if (!a || !b) return;
+    const xm = b.x1 > a.x2 + 8 ? a.x2 + (b.x1 - a.x2) / 2 : a.x2 + 10;
+    const col = t.st === "b" ? "var(--bad)" : "var(--ink)";
+    arrows += `<path d="M${a.x2} ${a.y} H${xm} V${b.y} H${b.x1}" fill="none" stroke="${col}" stroke-width="1.4" opacity=".65"/>
+               <circle cx="${b.x1}" cy="${b.y}" r="3" fill="${col}"/>`;
+  });
+
+  const detailTasks = vis.filter(t => {
+    if (focusWeek) return t.startWk <= focusWeek && t.endWk >= focusWeek;
+    if (focusMonth) {
+      const mc = cols.filter(c => c.mKey === focusMonth);
+      if (!mc.length) return false;
+      return t.startWk <= mc[mc.length - 1].ymd && t.endWk >= mc[0].ymd;
+    }
+    return true;
+  }).sort((a, b) => a.startWk.localeCompare(b.startWk));
+
+  const detailHeading = focusWeek
+    ? `Detail dikerjakan · ${wkMeta(focusWeek).mWeekLabel} ${wkMeta(focusWeek).mFull} (${wkMeta(focusWeek).rangeShort})`
+    : focusMonth
+      ? `Detail dikerjakan · ${cols.find(c => c.mKey === focusMonth)?.mFull || focusMonth}`
+      : `Tugas & detail yang dikerjakan`;
+
+  const isEmpty = S.cats.length === 0 && S.tasks.length === 0;
+  const totalMembers = allMembersList().length;
+
+  return `
+  <div class="hdr">
+    <div>
+      <h1>PLANNER EV 4W</h1>
+      <p class="sub">Jadwal bulanan &amp; mingguan · ${S.teams.length} tim aktif (${totalMembers} anggota terdaftar)</p>
+    </div>
+    <div class="acts">
+      <button class="sec" onclick="shiftRange(-13)">‹ 3 bln</button>
+      <button class="sec" onclick="jumpNow()">Bulan ini</button>
+      <button class="sec" onclick="shiftRange(13)">3 bln ›</button>
+      <button class="sec" onclick="page='tim';render()">Atur anggota tim</button>
+      <button class="sec" onclick="addCatPrompt()">+ Kategori</button>
+      <button class="pri" onclick="openModal()">Tugas baru</button>
+    </div>
+  </div>
+
+  ${filterBar()}
+
+  <div class="cd">
+    <div class="tl-wrap">
+      <div class="tl-inner">
+        <div class="tl-hdr">
+          <div class="tl-hrow">
+            <div class="tl-corner">Bulan</div>
+            <div style="display:flex">
+              ${months.map(m => `<div class="tl-mcell ${focusMonth === m.mKey ? "on" : ""}" style="width:${m.span * COL_W}px" title="Klik untuk filter detail bulan ${m.mFull}" onclick="toggleMonth('${m.mKey}')">${m.mShort}</div>`).join("")}
+            </div>
+          </div>
+          <div class="tl-hrow">
+            <div class="tl-corner">Minggu</div>
+            <div style="display:flex">
+              ${cols.map((c, i) => {
+                const mend = i < cols.length - 1 && cols[i + 1].mKey !== c.mKey;
+                const cur = c.ymd === CUR_MON;
+                return `<div class="tl-wcell ${mend ? "mend" : ""} ${cur ? "cur" : ""} ${focusWeek === c.ymd ? "on" : ""}"
+                             style="width:${COL_W}px"
+                             title="${c.mWeekLabel} ${c.mFull} (${c.rangeShort}) · ${c.wCode}"
+                             onclick="toggleWeek('${c.ymd}')">
+                          <b>${c.mWeekShort}</b>
+                          <span>${c.startDayLabel}</span>
+                        </div>`;
+              }).join("")}
+            </div>
+          </div>
+        </div>
+
+        ${isEmpty ? `
+          <div class="empty">
+            <b style="font-size:18px">Planner masih kosong</b>
+            <p>Tim <b>Energy Storage EV 4W</b>, <b>HVAC EV 4W</b>, <b>4W Knock Down</b>, dan <b>Vehicle Control Unit EV 4W</b> sudah siap. Silakan tambahkan nama anggota tim atau langsung buat tugas pertama Anda.</p>
+            <button class="sec" onclick="page='tim';render()">+ Isi nama anggota tim</button>
+            <button class="sec" onclick="addCatPrompt()">+ Buat kategori</button>
+            <button class="pri" onclick="openModal()">Tugas pertama</button>
+          </div>
+        ` : `
+          <div style="position:relative;height:${bodyH}px">
+            ${lanesHTML}
+            <svg class="dep-svg" width="${totalW}" height="${bodyH}">${arrows}</svg>
+          </div>
+        `}
+      </div>
+    </div>
+
+    ${!isEmpty ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:18px">
+        <div>
+          <b style="font-size:16px">${esc(detailHeading)}</b>
+          <small style="display:block">Klik nama bulan atau kolom minggu (Mg 1–4) di atas untuk menyaring periode</small>
+        </div>
+        <div class="acts">
+          ${(focusMonth || focusWeek) ? `<button class="sec" onclick="focusMonth='';focusWeek='';render()">Semua periode</button>` : ""}
+          <button class="sec" onclick="toggleWeek(CUR_MON)">Minggu ini</button>
+          <button class="sec" onclick="openReportModal()">Laporan Word / PDF</button>
+        </div>
+      </div>
+      ${renderDetailCards(detailTasks)}
+    ` : ""}
+  </div>`;
+}
+
+function toggleMonth(k) { focusWeek = ""; focusMonth = focusMonth === k ? "" : k; render(); }
+function toggleWeek(w) { focusMonth = ""; focusWeek = focusWeek === w ? "" : w; render(); }
+function shiftRange(n) { S.startWk = addWeeks(S.startWk, n); persist(); render(); }
+function jumpNow() { S.startWk = addWeeks(CUR_MON, -2); focusMonth = ""; focusWeek = ""; persist(); render(); }
+
+function renderDetailCards(list) {
+  if (!list.length) return `<p class="mut" style="margin:14px 0 2px">Tidak ada tugas pada periode atau filter ini.</p>`;
+  return `
+  <div class="dgrid">
+    ${list.map(t => {
+      const items = t.items || [];
+      const done = items.filter(x => x.x).length;
+      const tm = teamById(t.team);
+      const pics = t.pics || [];
+      return `
+      <div class="dcard">
+        <div class="dcard-hd">
+          <b onclick="openModal('${t.id}')">${esc(t.title)}</b>
+          <span class="tag ${t.st === "b" ? "bad" : t.st === "x" ? "ok" : ""}">${ST[t.st]}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span class="tag solid">${esc(tm.short || tm.name)}</span>
+          <span class="tag">${esc(catName(t.cat))}</span>
+          <small>${spanText(t.startWk, t.endWk)}</small>
+        </div>
+        ${pics.length ? `
+          <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+            <small>Dikerjakan oleh:</small>
+            ${pics.map(p => `<span class="tag"><span class="av" style="width:16px;height:16px;font-size:9px">${esc(ini(p))}</span> ${esc(p)}</span>`).join("")}
+          </div>` : ""}
+        ${t.desc ? `<div class="dcard-desc">${esc(t.desc)}</div>` : ""}
+        ${items.length ? `
+          <div class="chk-list">
+            <small>Detail yang dikerjakan (${done}/${items.length}):</small>
+            ${items.map((it, i) => `
+              <label class="chk ${it.x ? "done" : ""}">
+                <input type="checkbox" ${it.x ? "checked" : ""} onchange="toggleItem('${t.id}',${i})">
+                <span>${esc(it.t)}</span>
+              </label>`).join("")}
+          </div>` : ""}
+        ${t.out ? `<small>Output: <b>${esc(t.out)}</b></small>` : ""}
+        ${t.bl ? `<small style="color:var(--bad)">Hambatan: ${esc(t.bl)}</small>` : ""}
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function toggleItem(id, idx) {
+  const t = byId(id);
+  if (!t || !t.items || !t.items[idx]) return;
+  t.items[idx].x = !t.items[idx].x;
+  persist();
+  render();
+}
+
+// ==========================================
+// TAB 2: DETAIL MINGGU
+// ==========================================
+function renderMingguan() {
+  const { cols } = buildCols();
+  const vis = visibleTasks().sort((a, b) => a.startWk.localeCompare(b.startWk));
+
+  const sections = cols.map(c => {
+    const wt = vis.filter(t => t.startWk <= c.ymd && t.endWk >= c.ymd);
+    if (onlyActivePeriods && !wt.length) return "";
+    return `
+    <div class="cd">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div>
+          <b style="font-size:17px">${c.mWeekLabel} · ${c.mFull}</b> <small>(${c.rangeShort} · ${c.wCode})</small>
+          ${c.ymd === CUR_MON ? `<span class="tag ok" style="margin-left:6px">Minggu ini</span>` : ""}
+        </div>
+        <div class="acts">
+          <span class="tag">${wt.length} tugas</span>
+          <button class="sec" style="padding:5px 12px;font-size:12px" onclick="openModal(null,null,'${c.ymd}')">+ Tugas di minggu ini</button>
+        </div>
+      </div>
+      ${wt.length ? renderDetailCards(wt) : `<p class="mut" style="margin:10px 0 0">Belum ada tugas di minggu ini.</p>`}
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="hdr">
+    <div>
+      <h1>Detail Mingguan</h1>
+      <p class="sub">Rincian tugas apa saja, siapa yang mengerjakan, dan detail pekerjaannya tiap minggu</p>
+    </div>
+    <div class="acts">
+      <button class="sec" onclick="onlyActivePeriods=!onlyActivePeriods;render()">${onlyActivePeriods ? "Tampilkan minggu kosong" : "Hanya minggu berisi tugas"}</button>
+      <button class="pri" onclick="openModal()">Tugas baru</button>
+    </div>
+  </div>
+  ${filterBar()}
+  ${sections || `<div class="cd empty"><b style="font-size:18px">Belum ada tugas mingguan</b><p>Tambahkan tugas baru untuk melihat rincian per minggu.</p><button class="pri" onclick="openModal()">Tugas baru</button></div>`}`;
+}
+
+// ==========================================
+// TAB 3: DETAIL BULAN
+// ==========================================
+function renderBulanan() {
+  const { cols, months } = buildCols();
+  const vis = visibleTasks().sort((a, b) => a.startWk.localeCompare(b.startWk));
+
+  const sections = months.map(m => {
+    const mFirst = cols[m.startIdx].ymd;
+    const mLast = cols[m.endIdx].ymd;
+    const mt = vis.filter(t => t.startWk <= mLast && t.endWk >= mFirst);
+    if (onlyActivePeriods && !mt.length) return "";
+    return `
+    <div class="cd">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div>
+          <b style="font-size:18px">${m.mFull}</b> <small>(${m.span} minggu: ${cols[m.startIdx].rangeShort.split("–")[0].trim()} – ${cols[m.endIdx].rangeShort.split("–").pop().trim()})</small>
+        </div>
+        <div class="acts">
+          <span class="tag">${mt.length} tugas</span>
+          <button class="sec" style="padding:5px 12px;font-size:12px" onclick="openModal(null,null,'${mFirst}')">+ Tugas di bulan ini</button>
+        </div>
+      </div>
+      ${mt.length ? renderDetailCards(mt) : `<p class="mut" style="margin:10px 0 0">Belum ada tugas di bulan ini.</p>`}
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="hdr">
+    <div>
+      <h1>Detail Bulanan</h1>
+      <p class="sub">Rincian tugas apa saja, tim &amp; anggota, dan detail yang dikerjakan tiap bulan</p>
+    </div>
+    <div class="acts">
+      <button class="sec" onclick="onlyActivePeriods=!onlyActivePeriods;render()">${onlyActivePeriods ? "Tampilkan bulan kosong" : "Hanya bulan berisi tugas"}</button>
+      <button class="pri" onclick="openModal()">Tugas baru</button>
+    </div>
+  </div>
+  ${filterBar()}
+  ${sections || `<div class="cd empty"><b style="font-size:18px">Belum ada tugas bulanan</b><p>Tambahkan tugas baru untuk melihat rincian per bulan.</p><button class="pri" onclick="openModal()">Tugas baru</button></div>`}`;
+}
+
+// ==========================================
+// TAB 4: STATUS (KANBAN)
+// ==========================================
+function renderStatus() {
+  const vis = visibleTasks().sort((a, b) => a.startWk.localeCompare(b.startWk));
+  return `
+  <div class="hdr">
+    <div>
+      <h1>Status</h1>
+      <p class="sub">Klik kartu untuk detail, tombol › memajukan status</p>
+    </div>
+    <div class="acts"><button class="pri" onclick="openModal()">Tugas baru</button></div>
+  </div>
+  ${filterBar()}
+  ${!S.tasks.length ? `
+    <div class="cd empty"><b style="font-size:18px">Belum ada tugas</b><p>Mulai dengan menambahkan tugas pertama Anda.</p><button class="pri" onclick="openModal()">Tugas pertama</button></div>
+  ` : `
+    <div class="kb">
+      ${Object.entries(ST).map(([k, v]) => {
+        const L = vis.filter(t => t.st === k);
+        return `
+        <div class="cd">
+          <b>${v}</b> <small>${L.length}</small>
+          ${L.map(t => {
+            const c = (t.items || []).length;
+            const d = (t.items || []).filter(x => x.x).length;
+            const tm = teamById(t.team);
+            const pics = (t.pics || []).join(", ");
+            return `
+            <div class="kc" onclick="openModal('${t.id}')">
+              <span>
+                <b>${esc(t.title)}</b><br>
+                <small>${esc(tm.short)}${pics ? " · " + esc(pics) : ""}</small><br>
+                <small>${spanText(t.startWk, t.endWk)}${c ? ` · ${d}/${c}` : ""}</small>
+                ${t.bl ? `<br><span class="tag bad">${esc(t.bl)}</span>` : ""}
+              </span>
+              ${k !== "x" ? `<button aria-label="Majukan status" onclick="event.stopPropagation();adv('${t.id}')">›</button>` : ""}
+            </div>`;
+          }).join("") || `<p class="mut" style="margin:10px 0 0">Kosong.</p>`}
+        </div>`;
+      }).join("")}
+    </div>
+  `}`;
+}
+
+function adv(id) {
+  const t = byId(id);
+  const n = { p: "d", d: "x", b: "d" }[t.st];
+  if (!n) return;
+  const o = t.st;
+  t.st = n;
+  persist();
+  render();
+  toast(`${t.title} → ${ST[n]}`, () => { t.st = o; persist(); render(); });
+}
+
+// ==========================================
+// TAB 5: TIM & ANGGOTA
+// ==========================================
+function renderTim() {
+  return `
+  <div class="hdr">
+    <div>
+      <h1>Tim &amp; Anggota</h1>
+      <p class="sub">Tambahkan nama-nama anggota di masing-masing tim agar bisa dipilih saat membuat tugas</p>
+    </div>
+    <div class="acts">
+      <button class="pri" onclick="openModal()">Tugas baru</button>
+    </div>
+  </div>
+
+  <div class="tgrid">
+    ${S.teams.map((tm) => {
+      const members = tm.members || [];
+      const taskCount = S.tasks.filter(t => t.team === tm.id).length;
+      return `
+      <div class="cd">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <b style="font-size:17px">${esc(tm.name)}</b>
+            <small style="display:block">${members.length} anggota · ${taskCount} tugas</small>
+          </div>
+          <span class="tag">${esc(tm.short)}</span>
+        </div>
+
+        <form style="display:flex;gap:8px;margin-top:14px" onsubmit="event.preventDefault();addMember('${tm.id}', this.querySelector('input'))">
+          <input placeholder="Ketik nama anggota tim..." style="flex:1;border:1px solid var(--ln);background:var(--bg);border-radius:99px;padding:8px 14px">
+          <button type="submit" class="pri" style="padding:8px 15px">+ Tambah</button>
+        </form>
+
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;min-height:34px">
+          ${members.map((m, mi) => {
+            const cnt = S.tasks.filter(t => t.team === tm.id && (t.pics || []).includes(m)).length;
+            return `
+            <span class="mchip">
+              <span class="av">${esc(ini(m))}</span>
+              <span>${esc(m)}${cnt ? ` <small>(${cnt})</small>` : ""}</span>
+              <button type="button" title="Hapus ${esc(m)}" onclick="removeMember('${tm.id}', ${mi})">×</button>
+            </span>`;
+          }).join("") || `<small>Belum ada nama anggota di tim ini.</small>`}
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function addMember(teamId, inputEl) {
+  const name = inputEl.value.trim();
+  if (!name) return;
+  const tm = S.teams.find(x => x.id === teamId);
+  if (!tm) return;
+  tm.members = tm.members || [];
+  if (tm.members.some(m => m.toLowerCase() === name.toLowerCase())) {
+    toast(`${name} sudah ada di tim ${tm.short}`);
+    return;
+  }
+  tm.members.push(name);
+  inputEl.value = "";
+  persist();
+  render();
+  toast(`${name} ditambahkan ke ${tm.short}`);
+}
+
+function removeMember(teamId, mIdx) {
+  const tm = S.teams.find(x => x.id === teamId);
+  if (!tm || !tm.members) return;
+  const removed = tm.members.splice(mIdx, 1)[0];
+  persist();
+  render();
+  toast(`${removed} dihapus dari ${tm.short}`, () => {
+    tm.members.splice(mIdx, 0, removed);
+    persist();
+    render();
+  });
+}
+
+// ==========================================
+// TAB 6: KATEGORI & LIBUR
+// ==========================================
+function renderAtur() {
+  const { months } = buildAllWeeksData("2025-01-06", 160);
+  const mOpts = selM => months.map(m => `<option value="${m.mKey}" ${m.mKey === selM ? "selected" : ""}>${m.mFull}</option>`).join("");
+  const curM = wkMeta(CUR_MON).mKey;
+  const startM = wkMeta(S.startWk).mKey;
+
+  return `
+  <div class="hdr">
+    <div>
+      <h1>Kategori &amp; Libur</h1>
+      <p class="sub">Atur baris kategori pekerjaan, penanda libur, dan rentang bulan yang ditampilkan</p>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="cd">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <b>Kategori / Fase Pekerjaan</b>
+        <button class="pri" style="padding:7px 14px" onclick="addCatPrompt()">+ Kategori</button>
+      </div>
+      <small>Setiap kategori menjadi satu kelompok baris di timeline (misalnya Design, Ordering, Uji Kendaraan, Produksi).</small>
+      <div style="margin-top:10px">
+        ${S.cats.map((c, i) => `
+          <div class="row">
+            <input value="${esc(c.name)}" style="border:1px solid var(--ln);background:var(--bg);border-radius:10px;padding:6px 10px;flex:1" onchange="S.cats[${i}].name=this.value.trim()||'Kategori';persist();render()">
+            <button class="sec" style="padding:5px 10px" onclick="moveCat(${i},-1)">↑</button>
+            <button class="sec" style="padding:5px 10px" onclick="moveCat(${i},1)">↓</button>
+            <button class="sec" style="padding:5px 10px;color:var(--bad)" onclick="delCat('${c.id}')">×</button>
+          </div>`).join("") || `<p class="mut">Belum ada kategori. Klik + Kategori untuk membuat.</p>`}
+      </div>
+    </div>
+
+    <div class="cd">
+      <b>Penanda Libur / Periode Khusus</b>
+      <small style="display:block;margin-bottom:10px">Menampilkan blok vertikal di seluruh baris minggu (opsional).</small>
+      <input id="h_t" placeholder="Nama libur / event (mis. Libur Lebaran)" style="width:100%;border:1px solid var(--ln);background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:8px">
+      <div id="cal_h" style="margin-bottom:8px"></div>
+      <input type="hidden" id="hs_w"><input type="hidden" id="he_w">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <select id="h_c" style="flex:1;border:1px solid var(--ln);background:var(--bg);border-radius:10px;padding:8px">
+          ${Object.entries(HOL_TONES).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}
+        </select>
+        <button class="pri" style="padding:8px 14px" onclick="addHoliday()">Tambah</button>
+      </div>
+      ${S.holidays.map((h, i) => `
+        <div class="row">
+          <span><b>${esc(h.title)}</b><br><small>${spanText(h.startWk, h.endWk)}</small></span>
+          <button class="sec" style="padding:5px 10px;color:var(--bad)" onclick="S.holidays.splice(${i},1);persist();render()">Hapus</button>
+        </div>`).join("") || `<p class="mut">Belum ada penanda libur.</p>`}
+    </div>
+  </div>
+
+  <div class="cd" style="margin-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <div>
+        <b>Sinkronisasi Database Firebase</b>
+        <small style="display:block">${getSavedFbSettings() ? `Terhubung ke ${esc(getSavedFbSettings().config.databaseURL)} (path: ${esc(getSavedFbSettings().dbPath)})` : "Belum dikonfigurasi — data saat ini hanya tersimpan di browser lokal."}</small>
+      </div>
+      <div class="acts">
+        <button class="pri" style="padding:7px 14px" onclick="openFirebaseModal()">Atur Koneksi Firebase</button>
+        ${fbRef ? `<button class="sec" style="padding:7px 14px" onclick="forcePushFirebase()">Sinkronkan Sekarang</button>` : ""}
+      </div>
+    </div>
+  </div>
+
+  <div class="cd" style="margin-top:12px">
+    <b>Rentang Tampilan &amp; Reset</b>
+    <div class="two" style="margin-top:10px;max-width:520px">
+      <div>
+        <small>Mulai tampil dari bulan</small>
+        <select style="width:100%;margin-top:4px;border:1px solid var(--ln);background:var(--bg);border-radius:10px;padding:8px" onchange="setStartMonth(this.value)">
+          ${mOpts(startM)}
+        </select>
+      </div>
+      <div>
+        <small>Durasi tampilan timeline</small>
+        <select style="width:100%;margin-top:4px;border:1px solid var(--ln);background:var(--bg);border-radius:10px;padding:8px" onchange="S.weeksCount=+this.value;persist();render()">
+          ${[26, 39, 52, 78, 104].map(n => `<option value="${n}" ${S.weeksCount === n ? "selected" : ""}>${Math.round(n / 4.33)} bulan (${n} minggu)</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="acts" style="margin-top:14px">
+      <button class="sec" onclick="openReportModal()">Ekspor Word / PDF</button>
+      <button class="sec" onclick="expData()">Cadangkan (.json)</button>
+      <button class="sec" onclick="$('#imp').click()">Pulihkan (.json)</button>
+      <button class="sec" style="color:var(--bad);border-color:var(--bad)" onclick="resetAll()">Kosongkan Tugas &amp; Kategori</button>
+    </div>
+  </div>`;
+}
+
+function setStartMonth(mKey) {
+  const { byMonth } = buildAllWeeksData("2025-01-06", 160);
+  const arr = byMonth[mKey];
+  if (arr && arr.length) {
+    S.startWk = arr[0].ymd;
+    persist();
+    render();
+  }
+}
+
+function addCatPrompt() {
+  const name = prompt("Nama kategori / fase pekerjaan:");
+  if (!name || !name.trim()) return;
+  S.cats.push({ id: "cat_" + uid(), name: name.trim() });
+  persist();
+  render();
+  toast("Kategori ditambahkan");
+}
+function moveCat(i, d) {
+  const j = i + d;
+  if (j < 0 || j >= S.cats.length) return;
+  const [x] = S.cats.splice(i, 1);
+  S.cats.splice(j, 0, x);
+  persist();
+  render();
+}
+function delCat(id) {
+  if (!confirm("Hapus kategori ini?")) return;
+  S.tasks.forEach(t => { if (t.cat === id) t.cat = ""; });
+  S.cats = S.cats.filter(c => c.id !== id);
+  persist();
+  render();
+}
+function addHoliday() {
+  const title = $("#h_t").value.trim();
+  if (!title) { toast("Isi nama libur"); return; }
+  let s = $("#hs_w").value, e = $("#he_w").value;
+  if (e < s) [s, e] = [e, s];
+  S.holidays.push({ id: "hol_" + uid(), title, startWk: s, endWk: e, tone: $("#h_c").value });
+  persist();
+  render();
+  toast("Penanda libur ditambahkan");
+}
+function resetAll() {
+  if (!confirm("Kosongkan semua tugas, kategori, dan penanda libur? (Daftar 4 tim dan nama anggota tetap disimpan)")) return;
+  const old = JSON.parse(JSON.stringify(S));
+  S.cats = [];
+  S.holidays = [];
+  S.tasks = [];
+  persist();
+  render();
+  toast("Tugas & kategori dikosongkan", () => { S = old; persist(); render(); });
+}
+
+// ==========================================
+// EXPORT TO WORD (.DOC), PDF & COPY WORK LOG
+// ==========================================
+function toggleReportStyleUI() {
+  const isSimple = $("#rp_style").value === "simple";
+  $("#rp_simple_opts").style.display = isSimple ? "block" : "none";
+  $("#rp_table_opts").style.display = isSimple ? "none" : "block";
+  $("#rp_orient").value = isSimple ? "portrait" : "landscape";
+}
+
+function openReportModal() {
+  const todayStr = `${new Date().getDate()} ${MON_F[new Date().getMonth()]} ${new Date().getFullYear()}`;
+  const activeNotes = [];
+  if (fTeam !== "*") activeNotes.push(`Tim: ${teamById(fTeam).name}`);
+  if (fMember !== "*") activeNotes.push(`Anggota: ${fMember}`);
+  if (fCat !== "*") activeNotes.push(`Kategori: ${catName(fCat)}`);
+  if (fSt !== "*") activeNotes.push(`Status: ${ST[fSt]}`);
+
+  let periodDefault = `Tanggal ${todayStr}`;
+  if (focusWeek) {
+    const wm = wkMeta(focusWeek);
+    periodDefault = `${wm.mWeekLabel} · ${wm.mFull} (${wm.rangeShort})`;
+  } else if (focusMonth) {
+    const { cols } = buildCols();
+    const mName = cols.find(c => c.mKey === focusMonth)?.mFull || focusMonth;
+    periodDefault = `Bulan ${mName}`;
+  }
+  if (activeNotes.length) {
+    periodDefault += ` (${activeNotes.join(" · ")})`;
+  }
+
+  const hasFilter = activeNotes.length > 0 || !!focusWeek || !!focusMonth;
+
+  $("#md").innerHTML = `
+    <b style="font-size:18px">Ekspor Laporan ke Word &amp; PDF</b>
+    <small style="display:block;margin-top:2px">Pilih tampilan simpel (Work Log poin) atau tabel lengkap</small>
+
+    <div class="two">
+      <label>Format Tampilan
+        <select id="rp_style" onchange="toggleReportStyleUI()">
+          <option value="simple" selected>Simpel — Work Log Poin (Disarankan)</option>
+          <option value="table">Tabel Lengkap — Ringkasan &amp; Matriks</option>
+        </select>
+      </label>
+      <label>Cakupan Data Tugas
+        <select id="rp_scope">
+          <option value="filtered" ${hasFilter ? "selected" : ""}>Sesuai filter / periode aktif</option>
+          <option value="all" ${!hasFilter ? "selected" : ""}>Semua tugas di planner (${S.tasks.length} tugas)</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Judul Header Laporan</label>
+    <input id="rp_title" value="Work Log Monitoring | Hard Ware EV 4 Wheel">
+
+    <label>Kotak Tanggal / Periode</label>
+    <input id="rp_sub" value="${esc(periodDefault)}">
+
+    <label>Orientasi Halaman
+      <select id="rp_orient">
+        <option value="portrait" selected>Portrait (Tegak — cocok untuk Work Log)</option>
+        <option value="landscape">Landscape (Melebar — cocok untuk Tabel)</option>
+      </select>
+    </label>
+
+    <div id="rp_simple_opts">
+      <label>Opsi Tampilan Work Log</label>
+      <label class="chk-opt"><input type="checkbox" id="rp_wk" checked> Tampilkan periode minggu di samping judul tugas</label>
+      <label class="chk-opt"><input type="checkbox" id="rp_out" checked> Sertakan output, hambatan &amp; status DONE</label>
+    </div>
+
+    <div id="rp_table_opts" style="display:none">
+      <label>Bagian Tabel yang Disertakan</label>
+      <label class="chk-opt"><input type="checkbox" id="rp_sum" checked> Ringkasan eksekutif per tim &amp; status</label>
+      <label class="chk-opt"><input type="checkbox" id="rp_mat" checked> Matriks jadwal bulanan &amp; mingguan</label>
+      <label class="chk-opt"><input type="checkbox" id="rp_det" checked> Tabel rincian tugas, PIC &amp; checklist pekerjaan</label>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap">
+      <button type="button" class="pri" onclick="runReportExport('word')">Unduh Word (.doc)</button>
+      <button type="button" class="pri" onclick="runReportExport('pdf')">Cetak / Simpan PDF</button>
+      <button type="button" class="sec" onclick="runReportExport('copy')">Salin Teks</button>
+      <span style="flex:1"></span>
+      <button type="button" class="sec" onclick="closeModal()">Batal</button>
+    </div>`;
+
+  $("#ov").style.display = "grid";
+}
+
+function getReportTasks(scope) {
+  let list = scope === "all" ? [...S.tasks] : visibleTasks();
+  if (scope === "filtered") {
+    const { cols } = buildCols();
+    if (focusWeek) {
+      list = list.filter(t => t.startWk <= focusWeek && t.endWk >= focusWeek);
+    } else if (focusMonth) {
+      const mc = cols.filter(c => c.mKey === focusMonth);
+      if (mc.length) {
+        list = list.filter(t => t.startWk <= mc[mc.length - 1].ymd && t.endWk >= mc[0].ymd);
+      }
+    }
+  }
+  return list.sort((a, b) => a.startWk.localeCompare(b.startWk) || a.title.localeCompare(b.title));
+}
+
+function groupTasksForWorkLog(tasks) {
+  const groups = [];
+  const map = new Map();
+
+  const addEntry = (key, picName, teamObj, task) => {
+    if (!map.has(key)) {
+      const grp = { key, pic: picName, team: teamObj, tasks: [] };
+      map.set(key, grp);
+      groups.push(grp);
+    }
+    map.get(key).tasks.push(task);
+  };
+
+  tasks.forEach(t => {
+    const tm = teamById(t.team);
+    const pics = (t.pics || []).filter(p => p && p.trim());
+    if (pics.length) {
+      pics.forEach(p => {
+        if (fMember !== "*" && p !== fMember) return;
+        addEntry(`${tm.id}::${p.toLowerCase()}`, p, tm, t);
+      });
+    } else {
+      addEntry(`${tm.id}::__unassigned__`, "", tm, t);
+    }
+  });
+
+  const teamOrder = new Map(S.teams.map((tm, idx) => [tm.id, idx]));
+  groups.sort((a, b) => {
+    const ta = teamOrder.has(a.team.id) ? teamOrder.get(a.team.id) : 99;
+    const tb = teamOrder.has(b.team.id) ? teamOrder.get(b.team.id) : 99;
+    if (ta !== tb) return ta - tb;
+    if (!a.pic) return 1;
+    if (!b.pic) return -1;
+    return a.pic.localeCompare(b.pic);
+  });
+
+  return groups;
+}
+
+function buildSimpleWorkLogMarkup(opts) {
+  const tasks = getReportTasks(opts.scope);
+  const groups = groupTasksForWorkLog(tasks);
+
+  let html = `
+  <div style="font-family:Calibri,Arial,sans-serif;color:#111827;font-size:10.5pt;line-height:1.45;">
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14pt;">
+      <tr>
+        <td style="border-bottom:3pt double #111827;padding:0 0 6pt 0;font-size:14pt;font-weight:bold;">
+          ${esc(opts.title)}
+        </td>
+      </tr>
+    </table>
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14pt;">
+      <tr>
+        <td style="border:1pt solid #111827;padding:5pt 10pt;font-weight:bold;font-size:10.5pt;">
+          ${esc(opts.sub)}
+        </td>
+      </tr>
+    </table>`;
+
+  if (!groups.length) {
+    html += `<p style="color:#6b7280;">Tidak ada data tugas pada cakupan laporan ini.</p></div>`;
+    return html;
+  }
+
+  groups.forEach(g => {
+    const headerLabel = g.pic
+      ? `<b>${esc(g.pic)} : ${esc(g.team.short || g.team.name)}</b> | <i style="color:#374151;">${esc(g.team.name)}</i>`
+      : `<b>Tim ${esc(g.team.short || g.team.name)}</b> | <i style="color:#374151;">${esc(g.team.name)}</i>`;
+
+    html += `<div style="margin:12pt 0 4pt 0;font-size:10.5pt;">${headerLabel}</div>`;
+    html += `<ul style="margin:2pt 0 10pt 18pt;padding-left:4pt;list-style-type:disc;">`;
+
+    g.tasks.forEach(t => {
+      const subItems = [];
+
+      if (t.desc) {
+        t.desc.split(/\r?\n/).map(s => s.trim()).filter(Boolean).forEach(line => {
+          subItems.push({ text: line, done: false });
+        });
+      }
+
+      (t.items || []).forEach(it => {
+        if (it.t && it.t.trim()) {
+          subItems.push({ text: it.t.trim(), done: !!it.x });
+        }
+      });
+
+      if (opts.incOut) {
+        if (t.out) subItems.push({ text: `Output: ${t.out}`, done: false });
+        if (t.bl) subItems.push({ text: `Hambatan: ${t.bl}`, done: false, bad: true });
+        if (t.st === "x") subItems.push({ text: "DONE", done: false, bold: true });
+        else if (t.st === "b" && !t.bl) subItems.push({ text: "HOLD / TERBLOKIR", done: false, bad: true });
+      }
+
+      let titleSuffix = "";
+      if (opts.incWk) {
+        titleSuffix += ` <span style="color:#4b5563;font-size:9.5pt;">(${esc(spanText(t.startWk, t.endWk))})</span>`;
+      }
+      if (subItems.length && !t.title.trim().endsWith(":")) {
+        titleSuffix = ` :` + titleSuffix;
+      }
+
+      html += `<li style="margin:3pt 0;"><span>${esc(t.title)}${titleSuffix}</span>`;
+
+      if (subItems.length) {
+        html += `<ul style="margin:2pt 0 4pt 16pt;padding-left:4pt;list-style-type:circle;">`;
+        subItems.forEach(si => {
+          const styleAttr = si.bad
+            ? `color:#b91c1c;font-weight:bold;`
+            : si.bold
+              ? `font-weight:bold;`
+              : si.done
+                ? `color:#374151;`
+                : ``;
+          const checkPrefix = si.done ? "✓ " : "";
+          html += `<li style="margin:1.5pt 0;${styleAttr}">${checkPrefix}${esc(si.text)}</li>`;
+        });
+        html += `</ul>`;
+      }
+
+      html += `</li>`;
+    });
+
+    html += `</ul>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+function buildSimpleWorkLogPlainText(opts) {
+  const tasks = getReportTasks(opts.scope);
+  const groups = groupTasksForWorkLog(tasks);
+  const lines = [
+    opts.title,
+    "========================================================================",
+    "",
+    `[ ${opts.sub} ]`,
+    ""
+  ];
+
+  groups.forEach(g => {
+    lines.push(g.pic
+      ? `${g.pic} : ${g.team.short || g.team.name} | ${g.team.name}`
+      : `Tim ${g.team.short || g.team.name} | ${g.team.name}`
+    );
+
+    g.tasks.forEach(t => {
+      const subItems = [];
+      if (t.desc) {
+        t.desc.split(/\r?\n/).map(s => s.trim()).filter(Boolean).forEach(line => subItems.push(line));
+      }
+      (t.items || []).forEach(it => {
+        if (it.t && it.t.trim()) subItems.push((it.x ? "✓ " : "") + it.t.trim());
+      });
+      if (opts.incOut) {
+        if (t.out) subItems.push(`Output: ${t.out}`);
+        if (t.bl) subItems.push(`Hambatan: ${t.bl}`);
+        if (t.st === "x") subItems.push("DONE");
+        else if (t.st === "b" && !t.bl) subItems.push("HOLD / TERBLOKIR");
+      }
+
+      const wkPart = opts.incWk ? ` (${spanText(t.startWk, t.endWk)})` : "";
+      const colon = subItems.length && !t.title.trim().endsWith(":") ? " :" : "";
+      lines.push(`  • ${t.title}${colon}${wkPart}`);
+      subItems.forEach(si => lines.push(`      ◦ ${si}`));
+    });
+    lines.push("");
+  });
+
+  return lines.join("\n");
+}
+
+function fallbackCopyText(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  return ok;
+}
+
+function buildReportMarkup(opts) {
+  if (opts.style === "simple") {
+    return buildSimpleWorkLogMarkup(opts);
+  }
+
+  const tasks = getReportTasks(opts.scope);
+  const counts = { p: 0, d: 0, b: 0, x: 0 };
+  tasks.forEach(t => { if (counts[t.st] !== undefined) counts[t.st]++; });
+
+  const thStyle = `background:#1f2937;color:#ffffff;font-weight:bold;padding:7px 8px;border:1px solid #cbd5e1;text-align:left;font-size:9.5pt;`;
+  const tdStyle = `padding:6px 8px;border:1px solid #cbd5e1;vertical-align:top;font-size:9.5pt;`;
+  const tdCenter = `${tdStyle}text-align:center;`;
+
+  let html = `
+  <div style="font-family:Calibri,Arial,sans-serif;color:#111827;">
+    <div style="border-bottom:2.5px solid #111827;padding-bottom:8px;margin-bottom:14px;">
+      <div style="font-size:16pt;font-weight:bold;margin:0 0 3px 0;">${esc(opts.title)}</div>
+      <div style="font-size:10pt;color:#4b5563;">${esc(opts.sub)}</div>
+    </div>`;
+
+  // 1. Executive Summary per Team & Status
+  if (opts.incSum) {
+    html += `
+    <div style="font-size:11.5pt;font-weight:bold;margin:12px 0 6px 0;">1. Ringkasan Eksekutif Per Tim &amp; Status</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+      <thead>
+        <tr>
+          <th style="${thStyle}">Tim</th>
+          <th style="${thStyle}width:24%;">Anggota Tim</th>
+          <th style="${thStyle}text-align:center;width:9%;">Total</th>
+          <th style="${thStyle}text-align:center;width:10%;">Rencana</th>
+          <th style="${thStyle}text-align:center;width:11%;">Dikerjakan</th>
+          <th style="${thStyle}text-align:center;width:10%;">Terblokir</th>
+          <th style="${thStyle}text-align:center;width:10%;">Selesai</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${S.teams.map((tm, idx) => {
+          const tt = tasks.filter(t => t.team === tm.id);
+          const bg = idx % 2 === 1 ? "background:#f8fafc;" : "";
+          const mems = (tm.members || []).length ? esc(tm.members.join(", ")) : "<span style='color:#6b7280;'>-</span>";
+          return `
+          <tr style="${bg}">
+            <td style="${tdStyle}"><b>${esc(tm.name)}</b></td>
+            <td style="${tdStyle}">${mems}</td>
+            <td style="${tdCenter}"><b>${tt.length}</b></td>
+            <td style="${tdCenter}">${tt.filter(x => x.st === "p").length}</td>
+            <td style="${tdCenter}">${tt.filter(x => x.st === "d").length}</td>
+            <td style="${tdCenter}">${tt.filter(x => x.st === "b").length}</td>
+            <td style="${tdCenter}">${tt.filter(x => x.st === "x").length}</td>
+          </tr>`;
+        }).join("")}
+        <tr style="background:#eef2f6;font-weight:bold;">
+          <td style="${tdStyle}" colspan="2">Total Keseluruhan</td>
+          <td style="${tdCenter}">${tasks.length}</td>
+          <td style="${tdCenter}">${counts.p}</td>
+          <td style="${tdCenter}">${counts.d}</td>
+          <td style="${tdCenter}">${counts.b}</td>
+          <td style="${tdCenter}">${counts.x}</td>
+        </tr>
+      </tbody>
+    </table>`;
+  }
+
+  // 2. Schedule Matrix (Month & Week Overview)
+  if (opts.incMat) {
+    html += `
+    <div style="font-size:11.5pt;font-weight:bold;margin:14px 0 6px 0;">2. Matriks Jadwal Bulanan &amp; Mingguan</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+      <thead>
+        <tr>
+          <th style="${thStyle}width:5%;text-align:center;">No</th>
+          <th style="${thStyle}width:18%;">Tim &amp; Kategori</th>
+          <th style="${thStyle}width:27%;">Nama Tugas</th>
+          <th style="${thStyle}width:16%;">PIC / Anggota</th>
+          <th style="${thStyle}width:22%;">Jadwal (Bulan &amp; Minggu)</th>
+          <th style="${thStyle}width:12%;text-align:center;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tasks.length ? tasks.map((t, i) => {
+          const tm = teamById(t.team);
+          const bg = i % 2 === 1 ? "background:#f8fafc;" : "";
+          const pics = (t.pics || []).length ? esc(t.pics.join(", ")) : "-";
+          const stBadge = t.st === "x"
+            ? `<span style="color:#166534;font-weight:bold;">${ST[t.st]}</span>`
+            : t.st === "b"
+              ? `<span style="color:#b91c1c;font-weight:bold;">${ST[t.st]}</span>`
+              : `<span>${ST[t.st]}</span>`;
+          return `
+          <tr style="${bg}">
+            <td style="${tdCenter}">${i + 1}</td>
+            <td style="${tdStyle}"><b>${esc(tm.short || tm.name)}</b><br><span style="color:#4b5563;font-size:8.5pt;">${esc(catName(t.cat))}</span></td>
+            <td style="${tdStyle}"><b>${esc(t.title)}</b></td>
+            <td style="${tdStyle}">${pics}</td>
+            <td style="${tdStyle}">${esc(spanText(t.startWk, t.endWk))}</td>
+            <td style="${tdCenter}">${stBadge}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="6" style="${tdCenter}">Tidak ada data tugas pada cakupan laporan ini.</td></tr>`}
+      </tbody>
+    </table>`;
+  }
+
+  // 3. Detailed Task & Work Breakdown Table
+  if (opts.incDet) {
+    html += `
+    <div style="font-size:11.5pt;font-weight:bold;margin:14px 0 6px 0;">3. Rincian Tugas &amp; Detail yang Dikerjakan</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
+      <thead>
+        <tr>
+          <th style="${thStyle}width:4%;text-align:center;">No</th>
+          <th style="${thStyle}width:22%;">Tugas, Tim &amp; Jadwal</th>
+          <th style="${thStyle}width:14%;">PIC</th>
+          <th style="${thStyle}width:38%;">Detail yang Dikerjakan</th>
+          <th style="${thStyle}width:22%;">Output &amp; Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tasks.length ? tasks.map((t, i) => {
+          const tm = teamById(t.team);
+          const bg = i % 2 === 1 ? "background:#f8fafc;" : "";
+          const pics = (t.pics || []).length ? esc(t.pics.join(", ")) : "-";
+          const items = t.items || [];
+          const doneCnt = items.filter(x => x.x).length;
+
+          let detailCell = "";
+          if (t.desc) {
+            detailCell += `<div style="margin-bottom:5px;">${esc(t.desc).replace(/\n/g, "<br>")}</div>`;
+          }
+          if (items.length) {
+            detailCell += `<div style="font-size:8.5pt;color:#4b5563;margin-bottom:2px;"><b>Checklist (${doneCnt}/${items.length} selesai):</b></div>`;
+            detailCell += items.map(it =>
+              `<div style="margin:2px 0;">${it.x ? "☑" : "☐"} <span style="${it.x ? "text-decoration:line-through;color:#6b7280;" : ""}">${esc(it.t)}</span></div>`
+            ).join("");
+          }
+          if (!detailCell) detailCell = `<span style="color:#6b7280;">-</span>`;
+
+          let outCell = `<div><b>Status:</b> ${ST[t.st]}</div>`;
+          if (t.out) outCell += `<div style="margin-top:4px;"><b>Output:</b> ${esc(t.out)}</div>`;
+          if (t.bl) outCell += `<div style="margin-top:4px;color:#b91c1c;"><b>Hambatan:</b> ${esc(t.bl)}</div>`;
+
+          return `
+          <tr style="${bg}">
+            <td style="${tdCenter}">${i + 1}</td>
+            <td style="${tdStyle}">
+              <div style="font-weight:bold;font-size:10pt;margin-bottom:2px;">${esc(t.title)}</div>
+              <div style="font-size:8.5pt;color:#374151;">Tim: <b>${esc(tm.short || tm.name)}</b> · ${esc(catName(t.cat))}</div>
+              <div style="font-size:8.5pt;color:#4b5563;margin-top:2px;">Jadwal: ${esc(spanText(t.startWk, t.endWk))}</div>
+            </td>
+            <td style="${tdStyle}">${pics}</td>
+            <td style="${tdStyle}">${detailCell}</td>
+            <td style="${tdStyle}">${outCell}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="5" style="${tdCenter}">Tidak ada data tugas pada cakupan laporan ini.</td></tr>`}
+      </tbody>
+    </table>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function runReportExport(format) {
+  const opts = {
+    style: $("#rp_style").value,
+    title: $("#rp_title").value.trim() || "Work Log Monitoring | Hard Ware EV 4 Wheel",
+    sub: $("#rp_sub").value.trim(),
+    scope: $("#rp_scope").value,
+    orient: $("#rp_orient").value,
+    incWk: $("#rp_wk").checked,
+    incOut: $("#rp_out").checked,
+    incSum: $("#rp_sum").checked,
+    incMat: $("#rp_mat").checked,
+    incDet: $("#rp_det").checked
+  };
+
+  if (opts.style === "table" && !opts.incSum && !opts.incMat && !opts.incDet) {
+    toast("Pilih minimal satu bagian tabel laporan");
+    return;
+  }
+
+  if (format === "copy") {
+    const plain = buildSimpleWorkLogPlainText(opts);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(plain).then(() => {
+        closeModal();
+        toast("Teks Work Log disalin ke clipboard");
+      }).catch(() => {
+        const ok = fallbackCopyText(plain);
+        closeModal();
+        toast(ok ? "Teks Work Log disalin ke clipboard" : "Gagal menyalin otomatis");
+      });
+    } else {
+      const ok = fallbackCopyText(plain);
+      closeModal();
+      toast(ok ? "Teks Work Log disalin ke clipboard" : "Gagal menyalin otomatis");
+    }
+    return;
+  }
+
+  const bodyMarkup = buildReportMarkup(opts);
+  closeModal();
+
+  if (format === "word") {
+    const isLand = opts.orient === "landscape";
+    const pageSizeCss = isLand ? "29.7cm 21.0cm" : "21.0cm 29.7cm";
+    const wordDoc = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>${esc(opts.title)}</title>
+<!--[if gte mso 9]>
+<xml>
+  <w:WordDocument>
+    <w:View>Print</w:View>
+    <w:Zoom>100</w:Zoom>
+    <w:DoNotOptimizeForBrowser/>
+  </w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  @page Section1 {
+    size: ${pageSizeCss};
+    margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+    mso-header-margin: 1.0cm;
+    mso-footer-margin: 1.0cm;
+    ${isLand ? "mso-page-orientation: landscape;" : ""}
+  }
+  div.Section1 { page: Section1; }
+  table { border-collapse: collapse; }
+  tr { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+  <div class="Section1">
+    ${bodyMarkup}
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob(["\ufeff", wordDoc], { type: "application/msword;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Work-Log-EV-${fmtYMD(new Date())}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    toast("Dokumen Word (.doc) berhasil diunduh");
+  } else {
+    $("#print-orient").textContent = `@media print { @page { size: ${opts.orient}; margin: 12mm; } }`;
+    $("#print-sheet").innerHTML = bodyMarkup;
+    const cleanup = () => {
+      $("#print-sheet").innerHTML = "";
+      window.onafterprint = null;
+    };
+    window.onafterprint = cleanup;
+    setTimeout(() => {
+      window.print();
+    }, 120);
+  }
+}
+
+// ==========================================
+// INTUITIVE 2-STEP MONTH + WEEK PICKER
+// ==========================================
+let _cacheWeeks = null;
+function buildAllWeeksData(base = "2025-01-06", count = 160) {
+  if (_cacheWeeks) return _cacheWeeks;
+  const list = [];
+  const byMonth = {};
+  const months = [];
+  for (let i = 0; i < count; i++) {
+    const w = wkMeta(addWeeks(base, i));
+    list.push(w);
+    if (!byMonth[w.mKey]) {
+      byMonth[w.mKey] = [];
+      months.push({ mKey: w.mKey, mFull: w.mFull, mShort: w.mShort });
+    }
+    byMonth[w.mKey].push(w);
+  }
+  _cacheWeeks = { list, byMonth, months };
+  return _cacheWeeks;
+}
+
+function syncWeekSelect(prefix, targetYmd = null) {
+  const mSel = $(`#${prefix}_m`);
+  const wSel = $(`#${prefix}_w`);
+  if (!mSel || !wSel) return;
+  const { byMonth } = buildAllWeeksData();
+  const weeks = byMonth[mSel.value] || [];
+  wSel.innerHTML = weeks.map(w =>
+    `<option value="${w.ymd}">${w.mWeekLabel} (${w.rangeShort}) · ${w.wCode}</option>`
+  ).join("");
+  if (targetYmd && weeks.some(w => w.ymd === targetYmd)) {
+    wSel.value = targetYmd;
+  }
+  updateSpanPreview();
+}
+
+function updateSpanPreview() {
+  const el = $("#span_prev");
+  const sw = $("#fs_w")?.value;
+  const ew = $("#fe_w")?.value;
+  if (!el || !sw || !ew) return;
+  const [a, b] = sw <= ew ? [sw, ew] : [ew, sw];
+  el.textContent = `Jadwal terpilih: ${spanText(a, b)}`;
+}
+
+// ==========================================
+// KALENDER PEMILIH TANGGAL (gaya Windows)
+// Klik tanggal -> minggu yang berisi tanggal itu terpilih
+// ==========================================
+const CALS = {};
+function calMount(elId, prefix, sYmd, eYmd) {
+  const s = fmtYMD(getMonday(parseYMD(sYmd)));
+  const e = fmtYMD(getMonday(parseYMD(eYmd)));
+  const th = parseYMD(s); th.setDate(th.getDate() + 3);
+  CALS[prefix] = { elId, prefix, s, e: e < s ? s : e, active: "s", y: th.getFullYear(), m: th.getMonth() };
+  calRender(prefix);
+}
+function calRender(prefix) {
+  const c = CALS[prefix];
+  const host = $("#" + c.elId);
+  if (!host) return;
+  const hs = $(`#${prefix}s_w`), he = $(`#${prefix}e_w`);
+  if (hs) hs.value = c.s;
+  if (he) he.value = c.e;
+
+  const today = fmtYMD(new Date());
+  const gridStart = getMonday(new Date(c.y, c.m, 1));
+  let cells = `<div class="cal-h">W</div>` + ["Sen","Sel","Rab","Kam","Jum","Sab","Min"].map(n => `<div class="cal-h">${n}</div>`).join("");
+  for (let r = 0; r < 6; r++) {
+    const mon = new Date(gridStart); mon.setDate(gridStart.getDate() + r * 7);
+    const mk = fmtYMD(mon);
+    const cls = (mk >= c.s && mk <= c.e ? "rb" : "") + (mk === c.s || mk === c.e ? " re" : "");
+    cells += `<div class="cal-w ${cls}">${wkMeta(mk).wNum}</div>`;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mon); d.setDate(mon.getDate() + i);
+      const ds = fmtYMD(d);
+      cells += `<button type="button" class="cal-d ${cls} ${d.getMonth() !== c.m ? "o" : ""} ${ds === today ? "today" : ""} ${i === 6 ? "wr" : ""}" title="${d.getDate()} ${MON_F[d.getMonth()]} ${d.getFullYear()}" onclick="calPick('${prefix}','${ds}')"><span>${d.getDate()}</span></button>`;
+    }
+  }
+  const box = (key, label, ymd) => {
+    const m = wkMeta(ymd);
+    return `<button type="button" class="cal-sel ${c.active === key ? "on" : ""}" onclick="calActive('${prefix}','${key}')"><small>${label}</small><b>${m.mWeekLabel} ${m.mFull}</b><span>${m.rangeShort} · ${m.wCode}</span></button>`;
+  };
+  host.innerHTML = `
+    <div class="cal-top">${box("s", "Mulai dikerjakan", c.s)}${box("e", "Selesai dikerjakan", c.e)}</div>
+    <div class="cal-box">
+      <div class="cal-nav">
+        <b>${MON_F[c.m]} ${c.y}</b>
+        <button type="button" class="t" onclick="calToday('${prefix}')">Hari ini</button>
+        <button type="button" onclick="calNav('${prefix}',-1)" aria-label="Bulan sebelumnya">▲</button>
+        <button type="button" onclick="calNav('${prefix}',1)" aria-label="Bulan berikutnya">▼</button>
+      </div>
+      <div class="cal-g">${cells}</div>
+    </div>
+    <div class="cal-prev">Jadwal terpilih: ${spanText(c.s, c.e)}</div>`;
+}
+function calPick(prefix, ds) {
+  const c = CALS[prefix];
+  const d = parseYMD(ds);
+  const mon = fmtYMD(getMonday(d));
+  if (c.active === "s") {
+    c.s = mon;
+    if (c.e < c.s) c.e = c.s;
+    c.active = "e";
+  } else {
+    c.e = mon;
+    if (c.e < c.s) c.s = c.e;
+  }
+  c.y = d.getFullYear();
+  c.m = d.getMonth();
+  calRender(prefix);
+}
+function calActive(prefix, key) {
+  const c = CALS[prefix];
+  c.active = key;
+  const th = parseYMD(key === "s" ? c.s : c.e); th.setDate(th.getDate() + 3);
+  c.y = th.getFullYear(); c.m = th.getMonth();
+  calRender(prefix);
+}
+function calNav(prefix, n) {
+  const c = CALS[prefix];
+  const d = new Date(c.y, c.m + n, 1);
+  c.y = d.getFullYear(); c.m = d.getMonth();
+  calRender(prefix);
+}
+function calToday(prefix) {
+  const c = CALS[prefix];
+  const d = new Date();
+  c.y = d.getFullYear(); c.m = d.getMonth();
+  calRender(prefix);
+}
+
+// ==========================================
+// MODAL TAMBAH / UBAH TUGAS & DETAIL
+// ==========================================
+function renderCL() {
+  $("#cl").innerHTML = CL.map((x, i) => `
+    <div class="cl">
+      <input type="checkbox" ${x.x ? "checked" : ""} onchange="CL[${i}].x=this.checked">
+      <input value="${esc(x.t)}" oninput="CL[${i}].t=this.value" placeholder="Detail pekerjaan yang dilakukan">
+      <button type="button" class="sec" style="padding:6px 11px" onclick="CL.splice(${i},1);renderCL()">×</button>
+    </div>`).join("");
+}
+
+function renderModalMembers() {
+  const box = $("#pic_box");
+  if (!box) return;
+  const tmId = $("#f_tm").value;
+  const tm = teamById(tmId);
+  const pool = [...new Set([...(tm.members || []), ...modalPics])];
+
+  box.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+      ${pool.map(name => {
+        const on = modalPics.includes(name);
+        return `
+        <span class="mpick ${on ? "on" : ""}" onclick="toggleModalPic('${esc(name).replace(/'/g, "\\'")}')">
+          <span class="av">${esc(ini(name))}</span>
+          <span>${esc(name)}</span>
+        </span>`;
+      }).join("") || `<small>Belum ada nama anggota di ${esc(tm.short)}. Tambahkan di bawah:</small>`}
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <input id="new_pic_inp" placeholder="Tambah nama anggota baru ke ${esc(tm.short)}..." style="margin:0;flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();quickAddModalPic()}">
+      <button type="button" class="sec" style="padding:7px 13px" onclick="quickAddModalPic()">+ Tambah nama</button>
+    </div>`;
+}
+
+function toggleModalPic(name) {
+  const idx = modalPics.indexOf(name);
+  if (idx >= 0) modalPics.splice(idx, 1);
+  else modalPics.push(name);
+  renderModalMembers();
+}
+
+function quickAddModalPic() {
+  const inp = $("#new_pic_inp");
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) return;
+  const tmId = $("#f_tm").value;
+  const tm = S.teams.find(x => x.id === tmId);
+  if (tm) {
+    tm.members = tm.members || [];
+    if (!tm.members.some(m => m.toLowerCase() === name.toLowerCase())) {
+      tm.members.push(name);
+      persist();
+    }
+  }
+  if (!modalPics.includes(name)) modalPics.push(name);
+  renderModalMembers();
+}
+
+function cellAdd(catId, wkYmd) {
+  openModal(null, catId, wkYmd, wkYmd);
+}
+
+function openModal(id = null, preCat = null, preWk = null, preEnd = null) {
+  const t = id ? byId(id) : null;
+  const defWk = preWk || focusWeek || CUR_MON;
+  const defTeam = (fTeam !== "*" ? fTeam : (S.teams[0] && S.teams[0].id)) || "VC";
+
+  const o = t || {
+    title: "",
+    team: defTeam,
+    pics: [],
+    cat: preCat !== null ? preCat : ((S.cats[0] && S.cats[0].id) || ""),
+    startWk: defWk,
+    endWk: preEnd || addWeeks(defWk, 2),
+    desc: "",
+    items: [{ t: "", x: false }],
+    out: "",
+    st: "p",
+    color: "sage",
+    dep: "",
+    bl: ""
+  };
+
+  CL = (o.items || []).map(x => ({ ...x }));
+  if (!CL.length) CL.push({ t: "", x: false });
+  modalPics = [...(o.pics || [])];
+
+  const { months } = buildAllWeeksData();
+  const sMeta = wkMeta(o.startWk);
+  const eMeta = wkMeta(o.endWk);
+  const mOpts = selM => months.map(m => `<option value="${m.mKey}" ${m.mKey === selM ? "selected" : ""}>${m.mFull}</option>`).join("");
+  const others = S.tasks.filter(x => !t || x.id !== t.id).sort((a, b) => a.startWk.localeCompare(b.startWk));
+  const curCatName = o.cat ? catName(o.cat) : "";
+
+  $("#md").innerHTML = `
+    <b style="font-size:18px">${t ? "Detail & ubah tugas" : "Tugas baru"}</b>
+
+    <label>Tugasnya apa (Judul pekerjaan)</label>
+    <input id="f_t" value="${esc(o.title)}" placeholder="mis. Uji bench BMS / Evaluasi HVAC / Validasi VCU">
+
+    <div class="two">
+      <label>Tim
+        <select id="f_tm" onchange="modalPics=[];renderModalMembers()">
+          ${S.teams.map(tm => `<option value="${tm.id}" ${tm.id === o.team ? "selected" : ""}>${esc(tm.name)}</option>`).join("")}
+        </select>
+      </label>
+      <label>Kategori / Fase (pilih atau ketik baru)
+        <input id="f_cat" list="cat_list" value="${esc(curCatName)}" placeholder="mis. Design, Ordering, Uji Kendaraan">
+        <datalist id="cat_list">${S.cats.map(c => `<option value="${esc(c.name)}">`).join("")}</datalist>
+      </label>
+    </div>
+
+    <label>Anggota tim yang mengerjakan (klik nama untuk memilih)</label>
+    <div id="pic_box"></div>
+
+    <label>Jadwal pengerjaan (klik tanggal di kalender)</label>
+    <div id="cal_f"></div>
+    <input type="hidden" id="fs_w" value="${o.startWk}"><input type="hidden" id="fe_w" value="${o.endWk}">
+
+    <label>Dikerjakannya apa (Deskripsi singkat pekerjaan)</label>
+    <textarea id="f_desc" rows="2" placeholder="Ringkasan ruang lingkup yang dikerjakan...">${esc(o.desc)}</textarea>
+
+    <label>Detail yang dikerjakan apa saja (Checklist)</label>
+    <div id="cl"></div>
+    <button type="button" class="sec" style="margin-top:8px" onclick="CL.push({t:'',x:false});renderCL()">+ Tambah detail</button>
+
+    <div class="two">
+      <label>Status
+        <select id="f_st">${Object.entries(ST).map(([k, v]) => `<option value="${k}" ${k === o.st ? "selected" : ""}>${v}</option>`).join("")}</select>
+      </label>
+      <label>Warna di timeline
+        <select id="f_col">${Object.entries(BAR_COLORS).map(([k, v]) => `<option value="${k}" ${k === o.color ? "selected" : ""}>${v}</option>`).join("")}</select>
+      </label>
+    </div>
+
+    <div class="two">
+      <label>Output / Hasil
+        <input id="f_out" value="${esc(o.out)}" placeholder="mis. Laporan uji / File DBC">
+      </label>
+      <label>Terhubung setelah tugas (Panah alur)
+        <select id="f_dep">
+          <option value="">Tidak ada</option>
+          ${others.map(x => `<option value="${x.id}" ${x.id === o.dep ? "selected" : ""}>${wkMeta(x.startWk).mWeekShort} ${wkMeta(x.startWk).mShort} · ${esc(x.title)}</option>`).join("")}
+        </select>
+      </label>
+    </div>
+
+    <label>Hambatan / Catatan (Opsional)</label>
+    <input id="f_bl" value="${esc(o.bl)}" placeholder="mis. Menunggu part / konfirmasi vendor">
+
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button type="button" class="pri" onclick="saveTask('${t ? t.id : ""}')">Simpan</button>
+      <button type="button" class="sec" onclick="closeModal()">Batal</button>
+      <span style="flex:1"></span>
+      ${t ? `<button type="button" class="sec" style="color:var(--bad)" onclick="delTask('${t.id}')">Hapus</button>` : ""}
+    </div>`;
+
+  renderModalMembers();
+  calMount("cal_f", "f", o.startWk, o.endWk);
+  renderCL();
+  $("#ov").style.display = "grid";
+  setTimeout(() => { const ft = $("#f_t"); if (ft) ft.focus(); }, 30);
+}
+
+const closeModal = () => $("#ov").style.display = "none";
+
+function saveTask(id) {
+  const title = $("#f_t").value.trim();
+  if (!title) { toast("Isi judul tugas"); return; }
+
+  const rawCat = $("#f_cat").value.trim();
+  let catId = "";
+  if (rawCat) {
+    const existing = S.cats.find(c => c.name.toLowerCase() === rawCat.toLowerCase());
+    if (existing) catId = existing.id;
+    else {
+      catId = "cat_" + uid();
+      S.cats.push({ id: catId, name: rawCat });
+    }
+  }
+
+  let sWk = $("#fs_w").value, eWk = $("#fe_w").value;
+  if (eWk < sWk) [sWk, eWk] = [eWk, sWk];
+
+  const data = {
+    title,
+    team: $("#f_tm").value,
+    pics: [...modalPics],
+    cat: catId,
+    st: $("#f_st").value,
+    startWk: sWk,
+    endWk: eWk,
+    desc: $("#f_desc").value.trim(),
+    items: CL.filter(x => x.t.trim()).map(x => ({ t: x.t.trim(), x: !!x.x })),
+    out: $("#f_out").value.trim(),
+    color: $("#f_col").value,
+    dep: $("#f_dep").value,
+    bl: $("#f_bl").value.trim()
+  };
+
+  if (id) Object.assign(byId(id), data);
+  else S.tasks.push({ id: "t_" + uid(), ...data });
+
+  persist();
+  closeModal();
+  render();
+  toast("Tugas disimpan");
+}
+
+function delTask(id) {
+  const t = byId(id);
+  S.tasks = S.tasks.filter(x => x.id !== id);
+  persist();
+  closeModal();
+  render();
+  toast("Tugas dihapus", () => { S.tasks.push(t); persist(); render(); });
+}
+
+// ==========================================
+// DRAG & RESIZE ON TIMELINE
+// ==========================================
+let dg = null;
+document.addEventListener("pointerdown", e => {
+  const bar = e.target.closest(".bar");
+  if (!bar) return;
+  const t = byId(bar.dataset.id);
+  if (!t) return;
+  dg = {
+    t,
+    bar,
+    rz: e.target.dataset.rz || "mv",
+    x: e.clientX,
+    s0: t.startWk,
+    e0: t.endWk,
+    dc: 0
+  };
+  bar.setPointerCapture(e.pointerId);
+  bar.classList.add("drag");
+  hideTip();
+  e.preventDefault();
+});
+document.addEventListener("pointermove", e => {
+  if (!dg) return;
+  const dc = Math.round((e.clientX - dg.x) / 50);
+  if (dc === dg.dc) return;
+  dg.dc = dc;
+  if (dg.rz === "mv") {
+    dg.t.startWk = addWeeks(dg.s0, dc);
+    dg.t.endWk = addWeeks(dg.e0, dc);
+  } else if (dg.rz === "l") {
+    const c = addWeeks(dg.s0, dc);
+    dg.t.startWk = c <= dg.e0 ? c : dg.e0;
+  } else {
+    const c = addWeeks(dg.e0, dc);
+    dg.t.endWk = c >= dg.s0 ? c : dg.s0;
+  }
+  render();
+});
+document.addEventListener("pointerup", () => {
+  if (!dg) return;
+  const g = dg;
+  dg = null;
+  if (g.bar) g.bar.classList.remove("drag");
+  if (!g.dc) { openModal(g.t.id); return; }
+  persist();
+  render();
+  toast(`${g.t.title} → ${spanText(g.t.startWk, g.t.endWk)}`, () => {
+    g.t.startWk = g.s0;
+    g.t.endWk = g.e0;
+    persist();
+    render();
+  });
+});
+
+// Tooltip
+function showTip(e, id) {
+  if (dg) return;
+  const t = byId(id);
+  if (!t) return;
+  const tip = $("#tip");
+  const tm = teamById(t.team);
+  const pics = (t.pics || []).length ? `<br>PIC: ${(t.pics || []).map(esc).join(", ")}` : "";
+  const items = (t.items || []).map(x => `${x.x ? "✓" : "•"} ${esc(x.t)}`).join("<br>");
+  tip.innerHTML = `<b>${esc(t.title)}</b><br><span style="opacity:.85">${esc(tm.name)} · ${ST[t.st]}</span><br><span style="opacity:.85">${spanText(t.startWk, t.endWk)}</span>${pics}${t.desc ? `<br>${esc(t.desc)}` : ""}${items ? `<hr style="border:0;border-top:1px solid rgba(255,255,255,.2);margin:5px 0">${items}` : ""}`;
+  tip.style.display = "block";
+  moveTip(e);
+}
+function moveTip(e) {
+  const tip = $("#tip");
+  if (tip.style.display !== "block") return;
+  tip.style.left = Math.min(window.innerWidth - 330, e.clientX + 12) + "px";
+  tip.style.top = Math.min(window.innerHeight - 180, e.clientY + 12) + "px";
+}
+const hideTip = () => $("#tip").style.display = "none";
+document.addEventListener("mousemove", moveTip);
+
+// Export & Import JSON
+function expData() {
+  const b = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b);
+  a.download = "planner-ev-" + fmtYMD(new Date()) + ".json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  toast("Cadangan diunduh");
+}
+$("#imp").onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!Array.isArray(d.tasks)) throw 0;
+      if (!confirm(`Ganti semua data saat ini dengan isi cadangan (${d.tasks.length} tugas)?`)) return;
+      S = normalizeState(d);
+      persist();
+      render();
+      toast("Cadangan dipulihkan");
+    } catch (err) {
+      toast("File cadangan tidak valid");
+    }
+  };
+  r.readAsText(f);
+  e.target.value = "";
+};
+
+// Navigation & Theme
+document.querySelectorAll(".nav [data-p]").forEach(b => b.onclick = () => { page = b.dataset.p; render(); });
+$("#ov").onclick = e => { if (e.target.id === "ov") closeModal(); };
+$("#th").onclick = () => {
+  const r = document.documentElement;
+  const d = r.dataset.theme === "dark" || (!r.dataset.theme && matchMedia("(prefers-color-scheme:dark)").matches);
+  r.dataset.theme = d ? "light" : "dark";
+};
+
+function render() {
+  document.querySelectorAll(".nav [data-p]").forEach(b => b.classList.toggle("on", b.dataset.p === page));
+  $("#app").innerHTML = ({
+    planner: renderPlanner,
+    mingguan: renderMingguan,
+    bulanan: renderBulanan,
+    status: renderStatus,
+    tim: renderTim,
+    atur: renderAtur
+  })[page]();
+
+  if (page === "atur") {
+    calMount("cal_h", "h", CUR_MON, CUR_MON);
+  }
+}
+
+render();
+const _savedFb = getSavedFbSettings();
+if (_savedFb) {
+  initFirebaseSync(_savedFb, false);
+} else {
+  updateFbBadge();
+}
+</script>
+</body>
+</html>
